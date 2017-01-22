@@ -38,6 +38,11 @@ abstract class ModelTest extends DBUnitTestcase{
     	$port     = getenv("MYSQL_PORT")    ?getenv("MYSQL_PORT")    :(defined('MYSQL_PORT')    ?MYSQL_PORT    :'3306');
     	$username = getenv("MYSQL_USERNAME")?getenv("MYSQL_USERNAME"):(defined('MYSQL_USERNAME')?MYSQL_USERNAME:'root');
     	$password = getenv("MYSQL_PASSWORD")?getenv("MYSQL_PASSWORD"):(defined('MYSQL_PASSWORD')?MYSQL_PASSWORD:'');
+    	
+    	if($password == "NO_PASSWORD"){
+    		$password = '';
+    	}
+    	
     	self::$_connectionParams = array(
     		"host"=>$host,
     		"port"=>$port,
