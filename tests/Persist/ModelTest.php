@@ -14,6 +14,7 @@ use PhpPlatform\Mock\Config\MockSettings;
 use PhpPlatform\Config\SettingsCache;
 use PhpPlatform\Persist\RelationalMappingCache;
 use PhpPlatform\JSONCache\Cache;
+use PhpPlatform\Errors\ErrorHandler;
 
 abstract class ModelTest extends DBUnitTestcase{
 
@@ -88,6 +89,8 @@ abstract class ModelTest extends DBUnitTestcase{
     		}
     	}
     	
+    	// start error handling
+    	ErrorHandler::handleError();
     }
     
     public static function tearDownAfterClass(){
@@ -170,7 +173,9 @@ abstract class ModelTest extends DBUnitTestcase{
     	$_triggers->setAccessible(true);
     	$_triggers->setValue(null,null);
     	
-    	define('TRIGGER_TEST_LOG', 'TRIGGER_TEST_LOG');
+    	if(!defined('TRIGGER_TEST_LOG')){
+    		define('TRIGGER_TEST_LOG', 'TRIGGER_TEST_LOG');
+    	}
     	
     }
 
