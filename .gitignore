@@ -1,0 +1,5 @@
+/vendor/
+.idea
+.buildpath
+.project
+.settings/

@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <database name="persisttest">
+        <table_data name="t_super_parent">
+            <row>
+                <field name="F_PRIMARY_ID">1</field>
+                <field name="F_VARCHAR">variable characters 001</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">2</field>
+                <field name="F_VARCHAR">variable characters 002</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">3</field>
+                <field name="F_VARCHAR">variable characters 003</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">4</field>
+                <field name="F_VARCHAR">variable characters 004</field>
+            </row>
+        </table_data>
+        <table_data name="t_parent">
+            <row>
+                <field name="F_PRIMARY_ID">1</field>
+                <field name="F_INT">1</field>
+                <field name="F_DECIMAL">10.01</field>
+                <field name="F_PARENT_ID">1</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">2</field>
+                <field name="F_INT">2</field>
+                <field name="F_DECIMAL">20.02</field>
+                <field name="F_PARENT_ID">2</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">3</field>
+                <field name="F_INT">3</field>
+                <field name="F_DECIMAL">33.00</field>
+                <field name="F_PARENT_ID">3</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">4</field>
+                <field name="F_INT">4</field>
+                <field name="F_DECIMAL">44.04</field>
+                <field name="F_PARENT_ID">4</field>
+            </row>
+        </table_data>
+        <table_data name="t_child1">
+            <row>
+                <field name="F_PRIMARY_ID">1</field>
+                <field name="F_TIMESTAMP">2015-08-09 06:17:38</field>
+                <field name="F_PARENT_ID">1</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">2</field>
+                <field name="F_TIMESTAMP">2015-08-09 06:17:38</field>
+                <field name="F_PARENT_ID">2</field>
+            </row>
+        </table_data>
+        <table_data name="t_normal1">
+            <row>
+                <field name="F_PRIMARY_ID">1</field>
+                <field name="F_VARCHAR">variable characters 005</field>
+                <field name="F_FOREIGN">1</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">2</field>
+                <field name="F_VARCHAR">variable characters 006</field>
+                <field name="F_FOREIGN">2</field>
+            </row>
+        </table_data>
+        <table_data name="t_normal2">
+            <row>
+                <field name="F_PRIMARY_ID">1</field>
+                <field name="F_VARCHAR">variable characters 007</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">2</field>
+                <field name="F_VARCHAR">variable characters 008</field>
+            </row>
+        </table_data>
+        <table_data name="t_child2">
+            <row>
+                <field name="F_PRIMARY_ID">1</field>
+                <field name="F_DATE">2015-08-01</field>
+                <field name="F_PARENT_ID">3</field>
+                <field name="F_FOREIGN">1</field>
+            </row>
+            <row>
+                <field name="F_PRIMARY_ID">2</field>
+                <field name="F_DATE">2015-08-02</field>
+                <field name="F_PARENT_ID">4</field>
+                <field name="F_FOREIGN">2</field>
+            </row>
+        </table_data>
+    </database>
+</mysqldump>

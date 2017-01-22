@@ -1,0 +1,17 @@
+{
+  "dbHost"    :"localhost",
+  "dbPort"    :"3306",
+  "dbName"    :"icoodbtest",
+  "dbUsername":"root",
+  "dbPassword":"root123",
+  "dbSocket"  :null,
+
+
+  "sqlLogFile":null,
+  "outputDateFormat":"%d-%b-%Y",
+  "outputDateTimeFormat":"%d-%b-%Y %H:%i:%S",
+  
+  "triggers":{
+  }
+  
+}

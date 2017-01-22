@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<phpunit colors="true" bootstrap="vendor/autoload.php" >
+  <php>
+	<const name="MYSQL_HOST" value="localhost"/>
+	<const name="MYSQL_PORT" value="3306"/>
+	<const name="MYSQL_USERNAME" value="root"/>
+	<const name="MYSQL_PASSWORD" value="root"/>
+  </php>
+  <testsuites>
+    <testsuite name="php-platform/persist">
+      <directory>./tests</directory>
+    </testsuite>
+  </testsuites>
+  <filter>
+    <whitelist>
+        <directory suffix=".php">./src/</directory>
+    </whitelist>
+  </filter>
+</phpunit>
