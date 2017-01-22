@@ -1,5 +1,5 @@
-# Persist
-This package allows persistence of Objects
+# PHP Platform Persistance APIs 
+This package allows persistence of PHP models (Objects)
 
 
 ## Introduction
