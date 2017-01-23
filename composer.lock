@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "a19f93cf1bd1b63e0da181c420c4522c",
+    "content-hash": "0fbdba34233f59e74677cd1e1969cc20",
     "packages": [
         {
             "name": "php-platform/annotations",
@@ -283,6 +283,55 @@
                 "php-platform"
             ],
             "time": "2017-01-19T14:25:22+00:00"
+        },
+        {
+            "name": "php-platform/persist-unit",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPPlatform/persist-unit.git",
+                "reference": "8561c4b7b64c7e53d5da041bbbba01fbff0c0af5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/8561c4b7b64c7e53d5da041bbbba01fbff0c0af5",
+                "reference": "8561c4b7b64c7e53d5da041bbbba01fbff0c0af5",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3",
+                "php-platform/errors": "~0.1",
+                "php-platform/mock-config": "~0.1",
+                "phpunit/dbunit": "~1.4",
+                "phpunit/phpunit": "~4.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PhpPlatform\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Raghavendra K R",
+                    "email": "krraghavendra@yahoo.co.in",
+                    "homepage": "http://krraghavendra.in",
+                    "role": "Software Developer"
+                }
+            ],
+            "homepage": "https://github.com/PHPPlatform/persist",
+            "keywords": [
+                "OOP",
+                "PHP hibernate",
+                "Persist",
+                "db test",
+                "orm",
+                "php-platform",
+                "relational Schema",
+                "unit-test"
+            ],
+            "time": "2017-01-23T08:02:22+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -797,16 +846,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "4.8.31",
+            "version": "4.8.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "98b2b39a520766bec663ff5b7ff1b729db9dbfe3"
+                "reference": "f5e1941a8dacf0d904753ff2895c6f68e54bcee1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/98b2b39a520766bec663ff5b7ff1b729db9dbfe3",
-                "reference": "98b2b39a520766bec663ff5b7ff1b729db9dbfe3",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/f5e1941a8dacf0d904753ff2895c6f68e54bcee1",
+                "reference": "f5e1941a8dacf0d904753ff2895c6f68e54bcee1",
                 "shasum": ""
             },
             "require": {
@@ -865,7 +914,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2016-12-09T02:45:31+00:00"
+            "time": "2017-01-22T08:37:05+00:00"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
