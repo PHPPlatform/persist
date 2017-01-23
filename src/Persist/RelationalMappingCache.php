@@ -62,7 +62,7 @@ final class RelationalMappingCache extends Cache {
 						$classAnnotations [$annotationName] = $defaultClassAnnotations [$annotationName];
 					}
 				}
-				$classAnnotations ["tableName"] = strtoupper ( $classAnnotations ["tableName"] );
+				$classAnnotations ["tableName"] = $classAnnotations ["tableName"] ;
 				$resultAnnotations = $classAnnotations;
 				
 				$fields = array ();

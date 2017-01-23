@@ -1,6 +1,7 @@
 # PHP Platform Persistance APIs 
 This package allows persistence of PHP models (Objects)
 
+[![Build Status](https://travis-ci.org/PHPPlatform/persist.svg?branch=v0.1)](https://travis-ci.org/PHPPlatform/persist)
 
 ## Introduction
 This php library allows to convert relational schema to php objects

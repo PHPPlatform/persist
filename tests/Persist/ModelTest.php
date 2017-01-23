@@ -77,6 +77,11 @@ abstract class ModelTest extends DBUnitTestcase{
     	MockSettings::setSettings('php-platform/persist', "dbUsername", $username);
     	MockSettings::setSettings('php-platform/persist', "dbPassword", $password);
     	MockSettings::setSettings('php-platform/persist', "outputDateTimeFormat", "%Y-%m-%d %H:%i:%S");
+    	
+    	$logFile = getenv('sqlLogFile');
+    	if(!$logFile){
+    		MockSettings::setSettings('php-platform/persist', "sqlLogFile", $logFile);
+    	}
     	self::setTriggers(array());
     	
     	// create schema in database

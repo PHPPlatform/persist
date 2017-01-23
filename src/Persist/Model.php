@@ -10,6 +10,7 @@ use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
 use PhpPlatform\Persist\Exception\ObjectStateException;
 use PhpPlatform\Persist\Exception\TriggerException;
 use PhpPlatform\Config\Settings;
+use PhpPlatform\Errors\Exceptions\Persistence\BadQueryException;
 
 abstract class Model implements Constants{
     protected $isObjectInitialised = false;
@@ -180,7 +181,7 @@ abstract class Model implements Constants{
     		
     			if($result === FALSE){
     				$errorMessage = "Error in creating $className \"".$dbs->error."\"";
-    				throw new PersistenceException($errorMessage);
+    				throw new BadQueryException($errorMessage);
     			}
     		
     			if(null !== RelationalMappingUtil::getAutoIncrementKey($class)){

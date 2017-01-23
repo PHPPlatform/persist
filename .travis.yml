@@ -12,7 +12,10 @@ services:
   - mysql
 
 env:
-  - MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USERNAME=root MYSQL_PASSWORD=NO_PASSWORD
+  - MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_USERNAME=root MYSQL_PASSWORD=NO_PASSWORD sqlLogFile=/home/travis/builds/PHPPlatform/persist/sqllog.txt
+
+after_failure: 
+  - "cat /home/travis/builds/PHPPlatform/persist/sqllog.txt"
 
 before_script:
   - composer update
