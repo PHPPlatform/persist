@@ -36,7 +36,7 @@ class Transaction {
     private $attributes = null;
 
     /**
-     * @param icoodb $dbs
+     * @param MySql $dbs
      * @param Transaction $parent
      * @param boolean $superUser
      */
@@ -61,7 +61,7 @@ class Transaction {
     }
 
     /**
-     * @param icoodb $dbs
+     * @param MySql $dbs
      * @return Transaction
      */
     function createSubTransaction($dbs = null,$superUser = null){
@@ -143,7 +143,7 @@ class TransactionManager {
     static $transaction = null;
 
     /**
-     * @param $dbs icoodb
+     * @param $dbs MySql
      */
     static function startTransaction($dbs = null,$superUser = null,$timezone = null){
         if(self::$transaction == null){

@@ -286,16 +286,16 @@
         },
         {
             "name": "php-platform/persist-unit",
-            "version": "v0.1.0",
+            "version": "v0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPPlatform/persist-unit.git",
-                "reference": "8561c4b7b64c7e53d5da041bbbba01fbff0c0af5"
+                "reference": "118323c3b4bad9ea8538fcb4532b6a781a5c0f79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/8561c4b7b64c7e53d5da041bbbba01fbff0c0af5",
-                "reference": "8561c4b7b64c7e53d5da041bbbba01fbff0c0af5",
+                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/118323c3b4bad9ea8538fcb4532b6a781a5c0f79",
+                "reference": "118323c3b4bad9ea8538fcb4532b6a781a5c0f79",
                 "shasum": ""
             },
             "require": {
@@ -331,7 +331,7 @@
                 "relational Schema",
                 "unit-test"
             ],
-            "time": "2017-01-23T08:02:22+00:00"
+            "time": "2017-02-01T03:43:21+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -846,16 +846,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "4.8.32",
+            "version": "4.8.34",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "f5e1941a8dacf0d904753ff2895c6f68e54bcee1"
+                "reference": "7eb45205d27edd94bd2b3614085ea158bd1e2bca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/f5e1941a8dacf0d904753ff2895c6f68e54bcee1",
-                "reference": "f5e1941a8dacf0d904753ff2895c6f68e54bcee1",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7eb45205d27edd94bd2b3614085ea158bd1e2bca",
+                "reference": "7eb45205d27edd94bd2b3614085ea158bd1e2bca",
                 "shasum": ""
             },
             "require": {
@@ -914,7 +914,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-01-22T08:37:05+00:00"
+            "time": "2017-01-26T16:15:36+00:00"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -974,16 +974,16 @@
         },
         {
             "name": "sebastian/comparator",
-            "version": "1.2.2",
+            "version": "1.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/comparator.git",
-                "reference": "6a1ed12e8b2409076ab22e3897126211ff8b1f7f"
+                "reference": "2b7424b55f5047b47ac6e5ccb20b2aea4011d9be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/6a1ed12e8b2409076ab22e3897126211ff8b1f7f",
-                "reference": "6a1ed12e8b2409076ab22e3897126211ff8b1f7f",
+                "url": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/2b7424b55f5047b47ac6e5ccb20b2aea4011d9be",
+                "reference": "2b7424b55f5047b47ac6e5ccb20b2aea4011d9be",
                 "shasum": ""
             },
             "require": {
@@ -1034,7 +1034,7 @@
                 "compare",
                 "equality"
             ],
-            "time": "2016-11-19T09:18:40+00:00"
+            "time": "2017-01-29T09:50:25+00:00"
         },
         {
             "name": "sebastian/diff",

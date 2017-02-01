@@ -210,6 +210,8 @@ abstract class Model implements Constants{
      *             !important - contents of $where should be SQL injection free
      * @return array
      * @throws \Exception
+     * 
+     * @todo Add select option to select required values, in one loop, or a callback method to work with found objects
      */
 
     public static function find($filters,$sort = null,$pagination = null, $where = null){
@@ -226,6 +228,10 @@ abstract class Model implements Constants{
         }
 
         $Clauses = self::generateClauses($classList, $filters, $sort, $where, $readAccessWhereClause);
+        
+        if($Clauses === false){
+        	return array();
+        }
 
         $selectClause  = $Clauses["selectClause"];
         $fromClause    = $Clauses["fromClause"];
@@ -505,8 +511,12 @@ abstract class Model implements Constants{
     	
     					$fieldWhereClause = "$_prefix.$_columnName $operator '$minValue' AND '$maxValue'";
     				}else if($operator == self::OPERATOR_IN){
-    					if(!is_array($value) || count($value) == 0){
+    					if(!is_array($value)){
     						throw new InvalidInputException("Invalid find argument for $fieldName");
+    					}
+    					
+    					if(count($value) == 0){
+    						return false;
     					}
     	
     					$value = array_map(function($valueItem) use (&$values){

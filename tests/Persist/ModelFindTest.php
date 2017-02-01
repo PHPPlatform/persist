@@ -68,9 +68,17 @@ class ModelFindTest extends ModelTest{
         $this->assertEquals($this->getDatasetValue("t_child1",0,'F_TIMESTAMP'),$fTimestampReflection->getValue($findResults[0]));
         $this->assertEquals($this->getDatasetValue("t_parent",0,'F_INT'),$fIntReflection->getValue($findResults[0]));
         $this->assertEquals($this->getDatasetValue("t_parent",0,'F_DECIMAL'),$fDecimalReflection->getValue($findResults[0]));
+        
+        // find with OPERATOR_IN
+        $child1s = TChild1::find(array("fTimestamp"=>array(TChild1::OPERATOR_IN=>array("2015-08-09 06:17:38","2015-08-09 06:17:38"))));
+        $this->assertCount(2, $child1s);
 
-
-
+        $child1s = TChild1::find(array("fTimestamp"=>array(TChild1::OPERATOR_IN=>array("2015-08-09 06:17:38","2015-08-09 06:17:38")),"fInt"=>array(TChild1::OPERATOR_IN=>array("2","3"))));
+        $this->assertCount(1, $child1s);
+        
+        $child1s = TChild1::find(array("fTimestamp"=>array(TChild1::OPERATOR_IN=>array())));
+        $this->assertCount(0, $child1s);
+        
         //find with sorting
         TChild1::create(array('fTimestamp'=>'2015-08-10 06:17:38','fInt'=>2,'fDecimal'=>1000.00,'fVarchar'=>'variable characters 21'));
         TChild1::create(array('fTimestamp'=>'2015-08-11 06:15:38','fInt'=>6,'fDecimal'=>1000.00,'fVarchar'=>'variable characters 211'));
