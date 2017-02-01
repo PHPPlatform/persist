@@ -77,12 +77,10 @@ abstract class Model implements Constants{
     		$className = get_class($object);
     	}
     	
-    	$classList = RelationalMappingUtil::getClassConfiguration($className);
-    	
     	if(!TransactionManager::isSuperUser()){
-    		foreach(array_keys($classList) as $_className){
+    		while($className != false){
     			try{
-    				$result = Reflection::invokeArgs($_className, $accessType, $object);
+    				$result = Reflection::invokeArgs($className, $accessType, $object);
     				if($result === false){
     					throw new NoAccessException($errorMessage);
     				}
@@ -90,6 +88,7 @@ abstract class Model implements Constants{
     			}catch (\ReflectionException $re){
     				// do nothing
     			}
+    			$className = get_parent_class($className);
     		}
     	}
     	return true;
