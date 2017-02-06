@@ -382,7 +382,7 @@ abstract class Model implements Constants{
         return $resultList;
     }
     
-    private static function generateClauses(&$classList,$filters,$sort,&$where,$readAccessWhereClause){
+    private static function generateClauses(&$classList,$filters,$sort,&$where,&$readAccessWhereClause){
     	$fromClause = "";
     	$whereClause = "";
     	$selectClause = "";

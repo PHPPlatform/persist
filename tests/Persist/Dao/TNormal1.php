@@ -42,6 +42,16 @@ class TNormal1 extends Model {
         $this->fPrimaryId = $fPrimayId;
         parent::__construct();
     }
+    
+    /**
+     * @param unknown $filters
+     * @param unknown $sort
+     * @param unknown $pagination
+     * @param unknown $where
+     */
+    static function find($filters,$sort = null,$pagination = null, $where = null){
+    	return parent::find($filters,$sort,$pagination, $where);
+    }
 
     function delete(){
         parent::delete();
@@ -66,6 +76,10 @@ class TNormal1 extends Model {
 
     function getAttributes($args){
         return parent::getAttributes($args);
+    }
+    
+    static function ReadAccess(){
+    	return '{'.get_class().'.fVarchar}'." != 'a junk value'";
     }
 
 }
