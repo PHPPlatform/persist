@@ -130,7 +130,7 @@ abstract class Model implements Constants{
     		
     			$fields = $class['fields'];
     			foreach($fields as $fieldName=>$field){
-    				if(!RelationalMappingUtil::_isAutoIncrement($field) && (RelationalMappingUtil::_isReference($field) || RelationalMappingUtil::_isSet($field))){
+    				if(!RelationalMappingUtil::_isAutoIncrement($field)){
     					if($columnNames != ""){
     						$columnNames .=",";
     					}

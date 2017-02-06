@@ -23,7 +23,6 @@ class TChild1 extends TParent {
     /**
      * @columnName F_TIMESTAMP
      * @type timestamp
-     * @set
      * @get
      */
     private $fTimestamp = null;
