@@ -2,15 +2,14 @@
 
 namespace PhpPlatform\Persist;
 
-use PhpPlatform\Errors\Exceptions\Persistence\DataNotFoundException;
-use PhpPlatform\Errors\Exceptions\Persistence\PersistenceException;
-use PhpPlatform\Persist\Exception\InvalidForeignClassException;
-use PhpPlatform\Persist\Exception\InvalidInputException;
-use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
-use PhpPlatform\Persist\Exception\ObjectStateException;
-use PhpPlatform\Persist\Exception\TriggerException;
 use PhpPlatform\Config\Settings;
 use PhpPlatform\Errors\Exceptions\Persistence\BadQueryException;
+use PhpPlatform\Errors\Exceptions\Persistence\DataNotFoundException;
+use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
+use PhpPlatform\Persist\Exception\InvalidForeignClassException;
+use PhpPlatform\Persist\Exception\InvalidInputException;
+use PhpPlatform\Persist\Exception\ObjectStateException;
+use PhpPlatform\Persist\Exception\TriggerException;
 
 abstract class Model implements Constants{
     protected $isObjectInitialised = false;
@@ -100,7 +99,6 @@ abstract class Model implements Constants{
      * @param array $data
      * @throws NoAccessException
      * @throws InvalidInputException
-     * @throws PersistenceException
      * @return Model
      */
     public static function create($data){
@@ -605,7 +603,7 @@ abstract class Model implements Constants{
                     $returnCount = $totalRecords;
                 }
             }else{
-                throw new PersistenceException("Error in getting total records of last find");
+                throw new DataNotFoundException("Error in getting total records of last find");
             }
             TransactionManager::commitTransaction();
             return $returnCount;
@@ -686,7 +684,7 @@ abstract class Model implements Constants{
 
                 if($result === FALSE){
                     $errorMessage = "Error in deleting ".get_class($this).":$className ";
-                    throw new PersistenceException($errorMessage);
+                    throw new BadQueryException($errorMessage);
                 }
                 self::runTrigger($className, self::TRIGGER_EVENT_DELETE, self::TRIGGER_TYPE_POST, array($this));
                 
@@ -789,7 +787,7 @@ abstract class Model implements Constants{
 
                                 if($result === FALSE){
                                     $errorMessage = "Error in updating $className \"".$dbs->error."\"";
-                                    throw new PersistenceException($errorMessage);
+                                    throw new BadQueryException($errorMessage);
                                 }
 
                                 $row = $result->fetch_assoc();
@@ -859,7 +857,7 @@ abstract class Model implements Constants{
 
                 if($result === FALSE){
                     $errorMessage = "Error in updating ".get_class($this).":$className ";
-                    throw new PersistenceException($errorMessage);
+                    throw new BadQueryException($errorMessage);
                 }
                 self::runTrigger($className, self::TRIGGER_EVENT_UPDATE, self::TRIGGER_TYPE_POST, array($this,$modifiedFields));
                 
