@@ -67,7 +67,7 @@ abstract class Model implements Constants{
     }
     
     
-    private static function checkAccess($object,$accessType,$errorMessage){
+    final protected static function checkAccess($object,$accessType,$errorMessage){
     	
     	if(is_string($object)){
     		$className = $object;
