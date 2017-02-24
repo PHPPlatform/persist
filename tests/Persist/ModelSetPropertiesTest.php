@@ -14,7 +14,6 @@ use PhpPlatform\Tests\Persist\Dao\TChild2;
 use PhpPlatform\Persist\MySql;
 use PhpPlatform\Tests\Persist\Dao\TParent;
 use PhpPlatform\Persist\TransactionManager;
-use PhpPlatform\Persist\Model;
 
 class ModelSetPropertiesTest extends ModelTest{
 
@@ -61,69 +60,33 @@ class ModelSetPropertiesTest extends ModelTest{
         ),$tChild2Properties);
 
 
-        // test with access exception
-        $isException = false;
-        $parentObj = new TParent();
-        $parentObjReflection = new \ReflectionClass($parentObj);
-
-        $fPrimaryId = $parentObjReflection->getProperty('fPrimaryId');
-        $fPrimaryId->setAccessible(true);
-        $fPrimaryId->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_PRIMARY_ID'));
-
-        $fInt = $parentObjReflection->getProperty('fInt');
-        $fInt->setAccessible(true);
-        $fInt->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_INT'));
-
-        $fDecimal = $parentObjReflection->getProperty('fDecimal');
-        $fDecimal->setAccessible(true);
-        $fDecimal->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_DECIMAL'));
-
-        $fParentId = $parentObjReflection->getProperty('fParentId');
-        $fParentId->setAccessible(true);
-        $fParentId->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_PARENT_ID'));
-
-        $superParentObjReflection = $parentObjReflection->getParentClass();
-        $fPrimaryId = $superParentObjReflection->getProperty('fPrimaryId');
-        $fPrimaryId->setAccessible(true);
-        $fPrimaryId->setValue($parentObj,$this->getDatasetValue('t_super_parent',0,'F_PRIMARY_ID'));
-
-        $fVarchar = $superParentObjReflection->getProperty('fVarchar');
-        $fVarchar->setAccessible(true);
-        $fVarchar->setValue($parentObj,$this->getDatasetValue('t_super_parent',0,'F_VARCHAR'));
-
-        $ModelObjReflection = new \ReflectionClass('PhpPlatform\Persist\Model');
-        $isObjectInitialised = $ModelObjReflection->getProperty('isObjectInitialised');
-        $isObjectInitialised->setAccessible(true);
-        $isObjectInitialised->setValue($parentObj,true);
+        // construct a parent object
+        $parentObj = null;
+        $parentFPrimaryId = $this->getDatasetValue('t_parent',1,'F_PRIMARY_ID');
+        TransactionManager::executeInTransaction(function () use(&$parentObj,$parentFPrimaryId){
+        	$parentObj = new TParent($parentFPrimaryId);
+        },array(),true);
 
         // set attributes with access expression
+        $isException = false;
         try{
-            $parentObj->setAttribute("fInt",$this->getDatasetValue('t_parent',1,'F_INT'));
+            $parentObj->setAttribute("fInt",$this->getDatasetValue('t_parent',2,'F_INT'));
         }catch (\Exception $e){
             $isException = true;
         }
         $this->assertTrue($isException);
 
-
         // set attribute with super user
-        $isExceptionOuter = false;
+        $isException = false;
         try{
             TransactionManager::startTransaction(null,true);
-
-            $isException = false;
-            try{
-                $parentObj->setAttribute("fInt",$this->getDatasetValue('t_parent',1,'F_INT'));
-            }catch (\Exception $e){
-                $isException = true;
-            }
-            $this->assertTrue(!$isException);
-
+            $parentObj->setAttribute("fInt",$this->getDatasetValue('t_parent',2,'F_INT'));
             TransactionManager::commitTransaction();
         }catch (\Exception $e){
             TransactionManager::abortTransaction();
-            $isExceptionOuter = true;
+            $isException = true;
         }
-        $this->assertTrue(!$isExceptionOuter);
+        $this->assertTrue(!$isException);
         
         
         

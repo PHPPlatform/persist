@@ -217,7 +217,7 @@ class TransactionManager {
     
     static function getAttribute($name){
         if(self::$transaction == null){
-            throw new TransactionNotActiveException();
+            return null;
         }
         return self::$transaction->getAttribute($name);
     }

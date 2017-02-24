@@ -18,8 +18,7 @@ class ModelFindTest extends ModelTest{
     public function testFind(){
         // normal Find
 
-        $tNormal2Obj = new TNormal2();
-        $tNormal2Reflection = new \ReflectionClass($tNormal2Obj);
+        $tNormal2Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TNormal2');
         $fVarcharReflection = $tNormal2Reflection->getProperty("fVarchar");
         $fVarcharReflection->setAccessible(true);
         $fPrimaryIdReflection = $tNormal2Reflection->getProperty("fPrimaryId");
@@ -46,8 +45,7 @@ class ModelFindTest extends ModelTest{
 
 
         // find for inheritance
-        $tChild1Obj = new TChild1();
-        $tChild1Reflection = new \ReflectionClass($tChild1Obj);
+        $tChild1Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TChild1');
         $tParentReflection = $tChild1Reflection->getParentClass();
 
         $fPrimaryIdReflection = $tChild1Reflection->getProperty("fPrimaryId");
@@ -187,7 +185,6 @@ class ModelFindTest extends ModelTest{
         				))
         ));
         $_ENV[TRIGGER_TEST_LOG] = array();
-        $tChild1Obj = new TChild1();
         
         $findResults = TChild1::find(array("fTimestamp"=>"2015-08-09 06:17:38","fDecimal"=>"10.01"));
         $this->assertCount(1,$findResults);

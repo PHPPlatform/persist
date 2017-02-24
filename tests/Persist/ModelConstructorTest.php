@@ -12,6 +12,8 @@ use PhpPlatform\Tests\Persist\Dao\TChild2;
 use PhpPlatform\Tests\Persist\Dao\TNormal1;
 use PhpPlatform\Tests\Persist\Dao\TNormal2;
 use PhpPlatform\Tests\Persist\Dao\TParent;
+use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
+use PhpPlatform\Errors\Exceptions\Persistence\BadQueryException;
 
 class ModelConstructorTest extends ModelTest{
     
@@ -21,7 +23,7 @@ class ModelConstructorTest extends ModelTest{
         // test for no exceptions while constructing
         $isException = false;
         try{
-            new TNormal1();
+            new TNormal1(1);
         }catch (\Exception $e){
             echo $e;
             $isException = true;
@@ -29,16 +31,19 @@ class ModelConstructorTest extends ModelTest{
         $this->assertTrue(!$isException);
 
         $TNormal2Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TNormal2');
-        $isObjectInitialisedReflection = $TNormal2Reflection->getProperty("isObjectInitialised");
-        $isObjectInitialisedReflection->setAccessible(true);
-
+        
         // test for no argument constructor
-        $tNormal2Obj = new TNormal2();
-        $this->assertTrue(!$isObjectInitialisedReflection->getValue($tNormal2Obj));
-
+        $isException = false;
+        try{
+            $tNormal2Obj = new TNormal2();
+        }catch (BadQueryException $e){
+        	$this->assertEquals('PhpPlatform\Tests\Persist\Dao\TNormal2 can not be constructed with empty arguments',$e->getMessage());
+        	$isException = true;
+        }
+        $this->assertTrue($isException);
+        
         // test for constructor with argument
         $tNormal2Obj = new TNormal2(1);
-        $this->assertTrue($isObjectInitialisedReflection->getValue($tNormal2Obj));
 
         $fPrimaryIdReflection = $TNormal2Reflection->getProperty("fPrimaryId");
         $fPrimaryIdReflection->setAccessible(true);
@@ -51,14 +56,17 @@ class ModelConstructorTest extends ModelTest{
 
         // test for constructor with argument - for inherited Classes
         $TChild1Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TChild1');
-        $isObjectInitialisedReflection = $TChild1Reflection->getProperty("isObjectInitialised");
-        $isObjectInitialisedReflection->setAccessible(true);
 
-        $tChild1Obj = new TChild1();
-        $this->assertTrue(!$isObjectInitialisedReflection->getValue($tChild1Obj));
+        $isException = false;
+        try{
+            $tChild1Obj = new TChild1();
+        }catch (BadQueryException $e){
+        	$this->assertEquals('PhpPlatform\Tests\Persist\Dao\TChild1 can not be constructed with empty arguments',$e->getMessage());
+        	$isException = true;
+        }
+        $this->assertTrue($isException);
 
         $tChild1Obj = new TChild1(1);
-        $this->assertTrue($isObjectInitialisedReflection->getValue($tChild1Obj));
 
         $fPrimaryIdReflection = $TChild1Reflection->getProperty("fPrimaryId");
         $fPrimaryIdReflection->setAccessible(true);
@@ -85,11 +93,8 @@ class ModelConstructorTest extends ModelTest{
 
         // test for constructor with argument - for Foreign Values
         $TChild2Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TChild2');
-        $isObjectInitialisedReflection = $TChild2Reflection->getProperty("isObjectInitialised");
-        $isObjectInitialisedReflection->setAccessible(true);
 
         $tChild2Obj = new TChild2(1);
-        $this->assertTrue($isObjectInitialisedReflection->getValue($tChild2Obj));
 
         $fForeignVarcharReflection = $TChild2Reflection->getProperty("fForeignVarchar");
         $fForeignVarcharReflection->setAccessible(true);
@@ -99,8 +104,7 @@ class ModelConstructorTest extends ModelTest{
         $isException = false;
         try{
             new TParent(1);
-        }catch (\Exception $e){
-            $this->assertInstanceOf('PhpPlatform\Errors\Exceptions\Persistence\NoAccessException',$e);
+        }catch (NoAccessException $e){
             $isException = true;
         }
         $this->assertTrue($isException);

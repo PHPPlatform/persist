@@ -12,6 +12,7 @@ use PhpPlatform\Tests\Persist\Dao\TChild1;
 use PhpPlatform\Tests\Persist\Dao\TParent;
 use PhpPlatform\Persist\TransactionManager;
 use PhpPlatform\Tests\Persist\Dao\TChild2;
+use PhpPlatform\Errors\Exceptions\Persistence\BadQueryException;
 
 class ModelDeleteTest extends ModelTest{
 
@@ -43,44 +44,17 @@ class ModelDeleteTest extends ModelTest{
                 $this->getDataset()->getTable("t_super_parent")->getRow(2),
                 $this->getDataset()->getTable("t_super_parent")->getRow(3))
         ),"SELECT * FROM t_super_parent");
+        
+        // construct a parent object
+        $parentObj = null;
+        $parentFPrimaryId = $this->getDatasetValue('t_parent',1,'F_PRIMARY_ID');
+        TransactionManager::executeInTransaction(function () use(&$parentObj,$parentFPrimaryId){
+        	$parentObj = new TParent($parentFPrimaryId);
+        },array(),true);
 
 
-        $isException = false;
-        $parentObj = new TParent();
-        $parentObjReflection = new \ReflectionClass($parentObj);
-
-        $fPrimaryId = $parentObjReflection->getProperty('fPrimaryId');
-        $fPrimaryId->setAccessible(true);
-        $fPrimaryId->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_PRIMARY_ID'));
-
-        $fInt = $parentObjReflection->getProperty('fInt');
-        $fInt->setAccessible(true);
-        $fInt->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_INT'));
-
-        $fDecimal = $parentObjReflection->getProperty('fDecimal');
-        $fDecimal->setAccessible(true);
-        $fDecimal->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_DECIMAL'));
-
-        $fParentId = $parentObjReflection->getProperty('fParentId');
-        $fParentId->setAccessible(true);
-        $fParentId->setValue($parentObj,$this->getDatasetValue('t_parent',0,'F_PARENT_ID'));
-
-        $superParentObjReflection = $parentObjReflection->getParentClass();
-        $fPrimaryId = $superParentObjReflection->getProperty('fPrimaryId');
-        $fPrimaryId->setAccessible(true);
-        $fPrimaryId->setValue($parentObj,$this->getDatasetValue('t_super_parent',0,'F_PRIMARY_ID'));
-
-        $fVarchar = $superParentObjReflection->getProperty('fVarchar');
-        $fVarchar->setAccessible(true);
-        $fVarchar->setValue($parentObj,$this->getDatasetValue('t_super_parent',0,'F_VARCHAR'));
-
-        $ModelObjReflection = new \ReflectionClass('PhpPlatform\Persist\Model');
-        $isObjectInitialised = $ModelObjReflection->getProperty('isObjectInitialised');
-        $isObjectInitialised->setAccessible(true);
-        $isObjectInitialised->setValue($parentObj,true);
-
-
-        // delete with access expression
+        // delete with access expression set to false
+        $isException = true;
         try{
             $parentObj->delete();
         }catch (\Exception $e){
@@ -89,23 +63,41 @@ class ModelDeleteTest extends ModelTest{
         $this->assertTrue($isException);
 
 
-        // delete with super user
-        $isExceptionOuter = false;
+        // delete with super user , with foreign key constraint preventing it
+        $isException = false;
         try{
             TransactionManager::startTransaction(null,true);
-            $isException = false;
-            try{
-                $parentObj->delete();
-            }catch (\Exception $e){
-                $isException = true;
-            }
-            $this->assertTrue(!$isException);
+            $parentObj->delete();
             TransactionManager::commitTransaction();
-        }catch (\Exception $e){
-            TransactionManager::abortTransaction();
-            $isExceptionOuter = true;
+        }catch (BadQueryException $e){
+        	TransactionManager::abortTransaction();
+            $isException = true;
         }
-        $this->assertTrue(!$isExceptionOuter);
+        $this->assertTrue($isException);
+        
+        // remove foreign key constraint
+        try{
+        	TransactionManager::startTransaction();
+        	$dbs = TransactionManager::getConnection();
+        	$dbs->query("DELETE FROM t_normal1 where F_PRIMARY_ID = '".$this->getDatasetValue('t_normal1',1,'F_PRIMARY_ID')."'");
+        	$dbs->query("DELETE FROM t_child1 where F_PRIMARY_ID = '".$this->getDatasetValue('t_child1',1,'F_PRIMARY_ID')."'");
+        	TransactionManager::commitTransaction();
+        }catch (BadQueryException $e){
+        	TransactionManager::abortTransaction();
+        	throw $e;
+        }
+        
+        // delete with super user , with out any foreign key constraint preventing it
+        $isException = false;
+        try{
+        	TransactionManager::startTransaction(null,true);
+        	$parentObj->delete();
+        	TransactionManager::commitTransaction();
+        }catch (BadQueryException $e){
+        	TransactionManager::abortTransaction();
+        	$isException = true;
+        }
+        $this->assertTrue(!$isException);
 
         //test Trigger
         parent::setTriggers(array(

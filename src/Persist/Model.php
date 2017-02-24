@@ -8,11 +8,9 @@ use PhpPlatform\Errors\Exceptions\Persistence\DataNotFoundException;
 use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
 use PhpPlatform\Persist\Exception\InvalidForeignClassException;
 use PhpPlatform\Persist\Exception\InvalidInputException;
-use PhpPlatform\Persist\Exception\ObjectStateException;
 use PhpPlatform\Persist\Exception\TriggerException;
 
 abstract class Model implements Constants{
-    protected $isObjectInitialised = false;
 
     private $classConfigList = null;
     private static $_lastFindQuery = null;
@@ -26,6 +24,10 @@ abstract class Model implements Constants{
     const TRIGGER_EVENT_DELETE = "DELETE";
     
     function __construct(){
+    	
+    	if(TransactionManager::getAttribute("isFromNewInstanceWithoutConstructor") === true){
+    		return ;
+    	}
 		
 		$args = array();
         
@@ -40,7 +42,7 @@ abstract class Model implements Constants{
         }
 		
         if(count($args) == 0){
-            return;
+            throw new BadQueryException(get_class($this)." can not be constructed with empty arguments");
         }
         
         $resultList = static::find($args);
@@ -63,9 +65,25 @@ abstract class Model implements Constants{
                 Reflection::setValue($className, $fieldName, $this,Reflection::getValue($className, $fieldName, $resultList[0]));
             }
         }
-        $this->isObjectInitialised = true;
     }
     
+    /**
+     * @param string $className
+     * @throws Exception
+     * @return Model
+     */
+    private static function __newInstanceWithoutConstructor($className){
+    	try{
+    		TransactionManager::startTransaction();
+    		TransactionManager::setAttribute("isFromNewInstanceWithoutConstructor",true);
+    		$newInstance = Reflection::newInstanceArgs($className,array());
+    		TransactionManager::commitTransaction();
+    	}catch (\Exception $e){
+    		TransactionManager::abortTransaction();
+    		throw $e;
+    	}
+    	return $newInstance;
+    }
     
     final protected static function checkAccess($object,$accessType,$errorMessage){
     	
@@ -117,7 +135,7 @@ abstract class Model implements Constants{
     		self::checkAccess($calledClass, "CreateAccess", "User don't have access to Create");
     		
     		// create an instance of calledClass
-    		$thisModelObject = Reflection::newInstanceArgs($calledClass);
+    		$thisModelObject = self::__newInstanceWithoutConstructor($calledClass);
     		
     		$classList = RelationalMappingUtil::getClassConfiguration($calledClass);
     		//getClassConfigList will return the array of class config objects from child to parent , during creation values needs to be inserted from parent to child
@@ -187,7 +205,6 @@ abstract class Model implements Constants{
     			}
     			self::runTrigger($className, self::TRIGGER_EVENT_CREATE, self::TRIGGER_TYPE_POST, array($thisModelObject));
     		}
-    		Reflection::setValue(get_class(), 'isObjectInitialised', $thisModelObject, true);
     		
     		TransactionManager::commitTransaction();
     	}catch (\Exception $e){
@@ -319,8 +336,7 @@ abstract class Model implements Constants{
             $row = $result->fetch_assoc();
 
             while($row != null){
-                $resultObj = Reflection::newInstanceArgs($calledClassName);
-                
+            	$resultObj = self::__newInstanceWithoutConstructor($calledClassName);
                 foreach($classList as $className=>$class){
                 	$fields = $class['fields'];
                     foreach($fields as $fieldName=>$field){
@@ -358,9 +374,7 @@ abstract class Model implements Constants{
                         Reflection::setValue($className, $fieldName, $resultObj, $value);
                     }
                 }
-
-                Reflection::setValue($className, 'isObjectInitialised', $resultObj, true);
-
+                
                 $resultList[] = $resultObj;
                 $row = $result->fetch_assoc();
             }
@@ -614,9 +628,6 @@ abstract class Model implements Constants{
     }
 
     protected function delete(){
-        if(!$this->isObjectInitialised){
-            throw new ObjectStateException("Object is not initialised");
-        }
         try{
             TransactionManager::startTransaction();
             $dbs = TransactionManager::getConnection();
@@ -689,16 +700,12 @@ abstract class Model implements Constants{
                 self::runTrigger($className, self::TRIGGER_EVENT_DELETE, self::TRIGGER_TYPE_POST, array($this));
                 
             }
-            
-            $this->isObjectInitialised = false;
 
             TransactionManager::commitTransaction();
         }catch (\Exception $exp){
             TransactionManager::abortTransaction();
             throw $exp;
         }
-
-        $this->isObjectInitialised = false;
     }
 
     protected function setAttribute($name,$value){
@@ -709,9 +716,6 @@ abstract class Model implements Constants{
     }
 
     protected function setAttributes($args){
-        if(!$this->isObjectInitialised){
-            throw new ObjectStateException("Object is not initialised ");
-        }
         try{
             TransactionManager::startTransaction();
             $dbs = TransactionManager::getConnection();
@@ -892,9 +896,6 @@ abstract class Model implements Constants{
     }
 
     protected function getAttributes($args){
-        if(!$this->isObjectInitialised){
-            throw new ObjectStateException("Object is not initialised ");
-        }
         try{
 
             $classList = $this->getClassConfigList();
@@ -1011,11 +1012,8 @@ abstract class Model implements Constants{
     				}
     				$_ENV[$triggerHashCode] = true;
     				
-    				$reflectionClass = new \ReflectionClass($triggerClass);
-    				$triggerClassObj = $reflectionClass->newInstanceArgs(array());
-    				
-    				$triggerReflectionMethod = $reflectionClass->getMethod($triggerMethod);
-    				$triggerReflectionMethod->invokeArgs($triggerClassObj, $parameters);
+    				$triggerClassObj = Reflection::newInstanceArgs($triggerClass);
+    				Reflection::invokeArgs($triggerClass, $triggerMethod, $triggerClassObj,$parameters);
     				unset($_ENV[$triggerHashCode]);
     			}catch(\Exception $e){
     				unset($_ENV[$triggerHashCode]);

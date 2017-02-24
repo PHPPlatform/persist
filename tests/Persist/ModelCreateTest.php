@@ -16,7 +16,7 @@ class ModelCreateTest extends ModelTest{
 
     public function testCreate(){
         // normal create
-        $tNormal2 = TNormal2::create(array("fVarchar"=>"variable characters 111"));
+        TNormal2::create(array("fVarchar"=>"variable characters 111"));
 
         $this->assertSelect(array(
             't_normal2' => array(
@@ -27,15 +27,8 @@ class ModelCreateTest extends ModelTest{
             )
         ),'SELECT * FROM t_normal2 WHERE f_primary_id = 3');
 
-
-        $TNormal2Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TNormal2');
-        $isObjectInitialisedReflection = $TNormal2Reflection->getProperty("isObjectInitialised");
-        $isObjectInitialisedReflection->setAccessible(true);
-        $this->assertTrue($isObjectInitialisedReflection->getValue($tNormal2));
-
-
         // test for create with null values
-        $tNormal2 = TNormal2::create(array("fVarchar"=>null));
+        TNormal2::create(array("fVarchar"=>null));
 
         $this->assertSelect(array(
             't_normal2' => array(
@@ -45,8 +38,6 @@ class ModelCreateTest extends ModelTest{
                 )
             )
         ),'SELECT * FROM t_normal2 WHERE f_primary_id = 4');
-
-        $this->assertTrue($isObjectInitialisedReflection->getValue($tNormal2));
 
 
         // create with inheritance
@@ -86,12 +77,6 @@ class ModelCreateTest extends ModelTest{
                 )
             )
         ),'SELECT * FROM t_super_parent WHERE f_primary_id = 5');
-
-        $TChild1Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TChild1');
-        $isObjectInitialisedReflection = $TChild1Reflection->getProperty("isObjectInitialised");
-        $isObjectInitialisedReflection->setAccessible(true);
-
-        $this->assertTrue($isObjectInitialisedReflection->getValue($tChild1));
 
         //create with access exception
         $isException = false;
