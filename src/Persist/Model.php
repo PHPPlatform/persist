@@ -708,13 +708,23 @@ abstract class Model implements Constants{
         }
     }
 
+    /**
+     * 
+     * @param string $name
+     * @param mixed $value
+     * @return Model
+     */
     protected function setAttribute($name,$value){
         $args = array();
         $args[$name] = $value;
 
-        $this->setAttributes($args);
+        return $this->setAttributes($args);
     }
 
+    /**
+     * @param array $args
+     * @return Model
+     */
     protected function setAttributes($args){
         try{
             TransactionManager::startTransaction();
@@ -884,6 +894,8 @@ abstract class Model implements Constants{
             TransactionManager::abortTransaction();
             throw $exp;
         }
+        
+        return $this;
 
     }
 
