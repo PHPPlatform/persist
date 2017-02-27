@@ -73,10 +73,12 @@
             <row>
                 <field name="F_PRIMARY_ID">1</field>
                 <field name="F_VARCHAR">variable characters 007</field>
+                <field name="F_BOOLEAN">1</field>
             </row>
             <row>
                 <field name="F_PRIMARY_ID">2</field>
                 <field name="F_VARCHAR">variable characters 008</field>
+                <field name="F_BOOLEAN">0</field>
             </row>
         </table_data>
         <table_data name="t_child2">

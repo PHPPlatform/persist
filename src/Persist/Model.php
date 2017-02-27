@@ -153,7 +153,7 @@ abstract class Model implements Constants{
     		
     			$fields = $class['fields'];
     			foreach($fields as $fieldName=>$field){
-    				if(!RelationalMappingUtil::_isAutoIncrement($field)){
+    				if(!RelationalMappingUtil::_isAutoIncrement($field) && !RelationalMappingUtil::_isForeignField($field)){
     					if($columnNames != ""){
     						$columnNames .=",";
     					}
@@ -637,21 +637,7 @@ abstract class Model implements Constants{
             $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             // check for Delete Access
-            if(!TransactionManager::isSuperUser()){
-                foreach($classList as $className=>$class){
-                    $classReflection = new \ReflectionClass($className);
-                    try{
-                        $accessMethod = $classReflection->getMethod("DeleteAccess");
-                        $accessMethod->setAccessible(true);
-                        if(!$accessMethod->invoke($this)){
-                            throw new NoAccessException("User don't have access to Delete");
-                        }
-                        break;
-                    }catch (\ReflectionException $re){
-                        // do nothing if method does not exist
-                    }
-                }
-            }
+            self::checkAccess($this, "DeleteAccess", "User don't have access to Delete");
 
             foreach($classList as $className=>$class){
                 $reflectionClass = new \ReflectionClass($className);
@@ -737,22 +723,8 @@ abstract class Model implements Constants{
             $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             // check for Update Access
-            if(!TransactionManager::isSuperUser()){
-                foreach($classList as $className=>$class){
-                    $classReflection = new \ReflectionClass($className);
-                    try{
-                        $accessMethod = $classReflection->getMethod("UpdateAccess");
-                        $accessMethod->setAccessible(true);
-                        if(!$accessMethod->invoke($this)){
-                            throw new NoAccessException("User don't have access to Update");
-                        }
-                        break;
-                    }catch (\ReflectionException $re){
-                        // do nothing if method does not exist
-                    }
-                }
-            }
-
+            self::checkAccess($this, "UpdateAccess", "User don't have access to Update");
+            
             foreach($classList as $className=>$class){
                 $setClause = "";
                 $modifiedFields = array();

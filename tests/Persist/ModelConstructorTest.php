@@ -14,6 +14,7 @@ use PhpPlatform\Tests\Persist\Dao\TNormal2;
 use PhpPlatform\Tests\Persist\Dao\TParent;
 use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
 use PhpPlatform\Errors\Exceptions\Persistence\BadQueryException;
+use PhpPlatform\Errors\Exceptions\Persistence\DataNotFoundException;
 
 class ModelConstructorTest extends ModelTest{
     
@@ -53,6 +54,17 @@ class ModelConstructorTest extends ModelTest{
         $fVarcharReflection->setAccessible(true);
 
         $this->assertEquals($this->getDatasetValue("t_normal2",0,'F_VARCHAR'),$fVarcharReflection->getValue($tNormal2Obj));
+        
+        
+        // test for constructor for non-existing data
+        $isException = false;
+        try{
+        	$tNormal2Obj = new TNormal2(10);
+        }catch (DataNotFoundException $e){
+        	$this->assertEquals('PhpPlatform\Tests\Persist\Dao\TNormal2 with fPrimaryId = 10 does not exist',$e->getMessage());
+        	$isException = true;
+        }
+        $this->assertTrue($isException);
 
         // test for constructor with argument - for inherited Classes
         $TChild1Reflection = new \ReflectionClass('PhpPlatform\Tests\Persist\Dao\TChild1');
@@ -101,6 +113,7 @@ class ModelConstructorTest extends ModelTest{
         $this->assertEquals($this->getDatasetValue("t_normal2",0,'F_VARCHAR'),$fForeignVarcharReflection->getValue($tChild2Obj));
 
 
+        // test with access filters
         $isException = false;
         try{
             new TParent(1);

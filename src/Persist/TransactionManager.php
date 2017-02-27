@@ -197,7 +197,7 @@ class TransactionManager {
     	}
     }
     
-    private static function setTimeZone($timeZone){
+    private static function setTimeZone($timeZone = null){
     	if($timeZone == null){
     		if(isset(self::$transaction)){
     			$timeZone = self::$transaction->getAttribute('timeZone');

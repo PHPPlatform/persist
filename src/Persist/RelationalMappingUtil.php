@@ -68,6 +68,10 @@ class RelationalMappingUtil {
 		return isset($field['autoIncrement']) && (strtoupper($field['autoIncrement']) == "TRUE" || $field['autoIncrement'] === true);
 	}
 	
+	public static function _isForeignField(&$field){
+		return isset($field['foreignField']);
+	}
+	
 	public static function getClassConfiguration($className){
 		if(!is_string($className)){
 			$className = get_class($className);

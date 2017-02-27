@@ -23,8 +23,12 @@ class ModelGetPropertiesTest extends ModelTest{
 
         $tNormal2 = new TNormal2(2);
         $tNormal2Properties = $tNormal2->getAttributes("*");
-        $this->assertEquals(array("fPrimaryId"=>$this->getDatasetValue("t_normal2",1,'F_PRIMARY_ID'),
-            "fVarchar"=>$this->getDatasetValue("t_normal2",1,'F_VARCHAR')),$tNormal2Properties);
+        $this->assertEquals(
+        		array(
+        				"fPrimaryId"=>$this->getDatasetValue("t_normal2",1,'F_PRIMARY_ID'),
+                        "fVarchar"=>$this->getDatasetValue("t_normal2",1,'F_VARCHAR'),
+        				"fBoolean"=>false
+        		),$tNormal2Properties);
 
         //getProperties with inheritance
         $tChild2 = new TChild2(1);

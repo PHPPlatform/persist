@@ -11,37 +11,42 @@ use PhpPlatform\Tests\Persist\Dao\TNormal2;
 use PhpPlatform\Tests\Persist\Dao\TChild1;
 use PhpPlatform\Tests\Persist\Dao\TParent;
 use PhpPlatform\Persist\TransactionManager;
+use PhpPlatform\Tests\Persist\Dao\TChild2;
+use PhpPlatform\Errors\Exceptions\Persistence\BadQueryException;
+use PhpPlatform\Persist\Exception\InvalidInputException;
 
 class ModelCreateTest extends ModelTest{
 
     public function testCreate(){
         // normal create
-        TNormal2::create(array("fVarchar"=>"variable characters 111"));
+        $tNormal2Obj = TNormal2::create(array("fVarchar"=>"variable characters 111","fBoolean"=>true));
 
         $this->assertSelect(array(
             't_normal2' => array(
                 array(
                     'F_PRIMARY_ID' => 3,
-                    'F_VARCHAR' => 'variable characters 111'
+                    'F_VARCHAR' => 'variable characters 111',
+                	'F_BOOLEAN' => 1
                 )
             )
         ),'SELECT * FROM t_normal2 WHERE f_primary_id = 3');
 
         // test for create with null values
-        TNormal2::create(array("fVarchar"=>null));
+        TNormal2::create(array("fVarchar"=>null,"fBoolean"=>false));
 
         $this->assertSelect(array(
             't_normal2' => array(
                 array(
                     'F_PRIMARY_ID' => 4,
-                    'F_VARCHAR' => null
+                    'F_VARCHAR' => null,
+                	'F_BOOLEAN' => 0
                 )
             )
         ),'SELECT * FROM t_normal2 WHERE f_primary_id = 4');
 
 
         // create with inheritance
-        $tChild1 = TChild1::create(array(
+        TChild1::create(array(
         	'fTimestamp'=>'2015-08-10 06:17:38',
         	'fInt'=>10,
         	'fDecimal'=>10.20,
@@ -77,7 +82,17 @@ class ModelCreateTest extends ModelTest{
                 )
             )
         ),'SELECT * FROM t_super_parent WHERE f_primary_id = 5');
-
+        
+        //create with wrong value for boolean
+        $isException = false;
+        try{
+        	TNormal2::create(array("fVarchar"=>null,"fBoolean"=>"it is true"));
+        }catch (InvalidInputException $e){
+        	$isException = true;
+        	parent::assertEquals("Expected boolean value for fBoolean", $e->getMessage());
+        }
+        $this->assertTrue($isException);
+        
         //create with access exception
         $isException = false;
         try{
@@ -116,10 +131,27 @@ class ModelCreateTest extends ModelTest{
         }
         $this->assertTrue(!$isExceptionOuter);
         
+        // test for error during creation 
+        $isException = false;
+        try{
+        	$tChild2 = TChild2::create(array(
+        			'fDate'=>'2015-08-10',
+        			'fInt'=>10,
+        			'fDecimal'=>10.20,
+        			'fVarchar'=>'variable characters for pretrigger testing'
+        	));
+        }catch (BadQueryException $e){
+        	$isException = true;
+        	parent::assertEquals('Error in creating PhpPlatform\Tests\Persist\Dao\TChild2 "Column \'F_FOREIGN\' cannot be null"', $e->getMessage());
+        }
+        parent::assertTrue($isException);
+        
+        
+        
         
         //test Trigger
         parent::setTriggers(array(
-        				  'PhpPlatform\Tests\Persist\Dao\TChild1'=>array(
+        				  'PhpPlatform\Tests\Persist\Dao\TChild2'=>array(
         						"CREATE"=>array(
         								"PRE"=>array(array(
         										"class"=>'PhpPlatform\Tests\Persist\SampleTrigger',
@@ -143,16 +175,17 @@ class ModelCreateTest extends ModelTest{
 			        				))
         ));
         $_ENV[TRIGGER_TEST_LOG] = array();
-        $tChild1 = TChild1::create(array(
-        		'fTimestamp'=>'2015-08-10 06:17:38',
+        $tChild2 = TChild2::create(array(
+        		'fDate'=>'2015-08-10',
         		'fInt'=>10,
         		'fDecimal'=>10.20,
-        		'fVarchar'=>'variable characters for pretrigger testing'
+        		'fVarchar'=>'variable characters for pretrigger testing',
+        		'fForeign'=>$tNormal2Obj->getAttribute('fPrimaryId')
         ));
         
         $this->assertCount(2,$_ENV[TRIGGER_TEST_LOG]);
-        $this->assertEquals(array(array($tChild1),array($tChild1)),$_ENV[TRIGGER_TEST_LOG]["createPreTrigger"]);
-        $this->assertEquals(array(array($tChild1),array($tChild1)),$_ENV[TRIGGER_TEST_LOG]["createPostTrigger"]);
+        $this->assertEquals(array(array($tChild2),array($tChild2)),$_ENV[TRIGGER_TEST_LOG]["createPreTrigger"]);
+        $this->assertEquals(array(array($tChild2),array($tChild2)),$_ENV[TRIGGER_TEST_LOG]["createPostTrigger"]);
         
     }
 }

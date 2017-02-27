@@ -37,7 +37,7 @@ class ModelFindTest extends ModelTest{
 
 
         //find for null values
-        TNormal2::create(array("fVarchar"=>null));
+        TNormal2::create(array("fVarchar"=>null,"fBoolean"=>true));
         $findResults = TNormal2::find(array("fVarchar" => array(Model::OPERATOR_EQUAL=>null)));
         $this->assertCount(1,$findResults);
         $this->assertEquals("3",$fPrimaryIdReflection->getValue($findResults[0]));

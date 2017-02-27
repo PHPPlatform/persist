@@ -28,6 +28,14 @@ class TNormal2 extends Model {
      * @get
      */
     private $fVarchar = null;
+    
+    /**
+     * @columnName F_BOOLEAN
+     * @type boolean
+     * @set
+     * @get
+     */
+    private $fBoolean = null;
 
 
     function __construct($fPrimaryId = null){

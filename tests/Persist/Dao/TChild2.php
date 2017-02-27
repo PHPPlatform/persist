@@ -46,7 +46,7 @@ class TChild2 extends TParent {
 
     /**
      * @columnName F_FOREIGN
-     * @type integer
+     * @type varchar
      * @foreignField "PhpPlatform\\Tests\\Persist\\Dao\\TNormal2->fVarchar"
      * @get
      */
