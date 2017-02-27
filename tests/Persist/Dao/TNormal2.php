@@ -38,8 +38,9 @@ class TNormal2 extends Model {
     private $fBoolean = null;
 
 
-    function __construct($fPrimaryId = null){
+    function __construct($fPrimaryId = null, $fBoolean = null){
         $this->fPrimaryId = $fPrimaryId;
+        $this->fBoolean = $fBoolean;
         parent::__construct();
     }
 

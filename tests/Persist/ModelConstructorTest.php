@@ -59,9 +59,9 @@ class ModelConstructorTest extends ModelTest{
         // test for constructor for non-existing data
         $isException = false;
         try{
-        	$tNormal2Obj = new TNormal2(10);
+        	$tNormal2Obj = new TNormal2(10,true);
         }catch (DataNotFoundException $e){
-        	$this->assertEquals('PhpPlatform\Tests\Persist\Dao\TNormal2 with fPrimaryId = 10 does not exist',$e->getMessage());
+        	$this->assertEquals('PhpPlatform\Tests\Persist\Dao\TNormal2 with fPrimaryId = 10, fBoolean = 1 does not exist',$e->getMessage());
         	$isException = true;
         }
         $this->assertTrue($isException);
@@ -121,7 +121,27 @@ class ModelConstructorTest extends ModelTest{
             $isException = true;
         }
         $this->assertTrue($isException);
-
     }
+    
+    function testNewInstanceWithoutConstructor(){
+    	// normal test
+    	$newInstanceWithoutConstructor = new \ReflectionMethod('PhpPlatform\Persist\Model::__newInstanceWithoutConstructor');
+    	$newInstanceWithoutConstructor->setAccessible(true);
+    	$tNormal2Obj = $newInstanceWithoutConstructor->invokeArgs(null, array('PhpPlatform\Tests\Persist\Dao\TNormal2'));
+    	
+    	parent::assertEquals('PhpPlatform\Tests\Persist\Dao\TNormal2', get_class($tNormal2Obj));
+    	
+    	// error test
+    	$isException = false;
+    	try{
+    		$tNormal2Obj = $newInstanceWithoutConstructor->invokeArgs(null, array('NonExistingClass'));
+    	}catch (\Exception $e){
+    		parent::assertEquals('Class NonExistingClass does not exist', $e->getMessage());
+    		$isException = true;
+    	}
+    	$this->assertTrue($isException);
+    	
+    }
+    
 
 }
