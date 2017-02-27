@@ -4,6 +4,8 @@ namespace PhpPlatform\Persist;
 
 class RelationalMappingUtil {
 	
+	private static $relationalMappings = array();
+	
 	public static function getPrimaryKey(&$classInfo){
 		if(array_key_exists('primayFieldName', $classInfo)){
 			return  $classInfo['primayFieldName'];
@@ -73,7 +75,13 @@ class RelationalMappingUtil {
 		
 		$classList = array();
 		while(false !== $className){
-			$relationalMapping = RelationalMappingCache::getInstance()->get($className);
+			
+			if(array_key_exists($className, self::$relationalMappings)){
+				$relationalMapping = self::$relationalMappings[$className];
+			}else{
+				$relationalMapping = RelationalMappingCache::getInstance()->get($className);
+				self::$relationalMappings[$className] = $relationalMapping;
+			}
 			if($relationalMapping !== false){
 				$classList[$className] = $relationalMapping;
 			}

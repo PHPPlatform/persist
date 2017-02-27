@@ -10,6 +10,7 @@ namespace PhpPlatform\Tests\Persist;
 
 use PhpPlatform\Tests\PersistUnit\ModelTest as PersistUnitTest;
 use PhpPlatform\Persist\RelationalMappingCache;
+use PhpPlatform\Persist\Reflection;
 
 abstract class ModelTest extends PersistUnitTest{
     
@@ -29,6 +30,16 @@ abstract class ModelTest extends PersistUnitTest{
     	$caches = parent::getCaches();
     	array_push($caches, RelationalMappingCache::getInstance());
     	return $caches;
+    }
+    
+    static function setUpBeforeClass(){
+    	// close connections if any
+    	$conection = Reflection::getValue('PhpPlatform\Persist\Connection\ConnectionFactory', 'connection', null);
+    	if($conection != null){
+    		$conection->close();
+    		Reflection::setValue('PhpPlatform\Persist\Connection\ConnectionFactory', 'connection', null, null);
+    	}
+    	parent::setUpBeforeClass();
     }
     
 }

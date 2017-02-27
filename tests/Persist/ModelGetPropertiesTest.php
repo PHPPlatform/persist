@@ -10,7 +10,7 @@ namespace PhpPlatform\Tests\Persist;
 
 use PhpPlatform\Tests\Persist\Dao\TNormal2;
 use PhpPlatform\Tests\Persist\Dao\TChild2;
-use PhpPlatform\Persist\MySql;
+use PhpPlatform\Persist\TransactionManager;
 
 class ModelGetPropertiesTest extends ModelTest{
     
@@ -34,7 +34,12 @@ class ModelGetPropertiesTest extends ModelTest{
         $tChild2 = new TChild2(2);
         $tChild2Properties = $tChild2->getAttributes("*");
 
-        $dateInOutputFormat = self::$_pdo->query("SELECT date_format('".$this->getDatasetValue('t_child2',1,'F_DATE')."','".MySql::getOutputDateFormat()."') as dateInOutputFormat;");
+        $dateInOutputFormat = null;
+        $pdo = self::$_pdo;
+        $date = $this->getDatasetValue('t_child2',1,'F_DATE');
+        TransactionManager::executeInTransaction(function() use(&$dateInOutputFormat,$pdo,$date){
+        	$dateInOutputFormat = $pdo->query("SELECT date_format('".$date."','".TransactionManager::getConnection()->outputDateFormat()."') as dateInOutputFormat;");
+        });
         $dateInOutputFormat = $dateInOutputFormat->fetchColumn(0);
 
         $this->assertEquals(array(

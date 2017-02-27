@@ -9,10 +9,10 @@ use PhpPlatform\Errors\Exceptions\Persistence\NoAccessException;
 use PhpPlatform\Persist\Exception\InvalidForeignClassException;
 use PhpPlatform\Persist\Exception\InvalidInputException;
 use PhpPlatform\Persist\Exception\TriggerException;
+use PhpPlatform\Persist\Connection\Connection;
 
 abstract class Model implements Constants{
 
-    private $classConfigList = null;
     private static $_lastFindQuery = null;
     
     private static $_triggers = null;
@@ -47,19 +47,18 @@ abstract class Model implements Constants{
         
         $resultList = static::find($args);
 
-        $inputArgsStr = "";
-        foreach($args as $key=>$value){
-            if($inputArgsStr != ""){
-                $inputArgsStr .= ", ";
-            }
-            $inputArgsStr .= $key." = ".$value;
-        }
-
         if(count($resultList) == 0){
+        	$inputArgsStr = "";
+        	foreach($args as $key=>$value){
+        		if($inputArgsStr != ""){
+        			$inputArgsStr .= ", ";
+        		}
+        		$inputArgsStr .= $key." = ".$value;
+        	}
             throw new DataNotFoundException(get_class($this)." with ".$inputArgsStr." does not exist");
         }
 
-        $classList = $this->getClassConfigList();
+        $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
         foreach($classList as $className=>$class){
             foreach(array_keys($class['fields']) as $fieldName){
                 Reflection::setValue($className, $fieldName, $this,Reflection::getValue($className, $fieldName, $resultList[0]));
@@ -85,6 +84,14 @@ abstract class Model implements Constants{
     	return $newInstance;
     }
     
+    /**
+     * 
+     * @param Model|string $object
+     * @param string $accessType
+     * @param string $errorMessage
+     * @throws NoAccessException
+     * @return string|boolean
+     */
     final protected static function checkAccess($object,$accessType,$errorMessage){
     	
     	if(is_string($object)){
@@ -127,7 +134,7 @@ abstract class Model implements Constants{
     		
     		TransactionManager::startTransaction();
     		
-    		$dbs = TransactionManager::getConnection();
+    		$connection = TransactionManager::getConnection();
     		
     		$calledClass = get_called_class();
     		
@@ -138,7 +145,7 @@ abstract class Model implements Constants{
     		$thisModelObject = self::__newInstanceWithoutConstructor($calledClass);
     		
     		$classList = RelationalMappingUtil::getClassConfiguration($calledClass);
-    		//getClassConfigList will return the array of class config objects from child to parent , during creation values needs to be inserted from parent to child
+    		//getClassConfiguration will return the array of class config objects from child to parent , during creation values needs to be inserted from parent to child
     		$classList = array_reverse($classList);
     		foreach($classList as $className=>$class){
     			$columnNames = "";
@@ -171,12 +178,12 @@ abstract class Model implements Constants{
     						$values .= 'NULL';
     					}else{
     						if(strtoupper($field['type']) == "DATE"){
-    							$value = MySql::getMysqlDate($value);
+    							$value = $connection->formatDate($value);
     						}elseif(strtoupper($field['type']) == "DATETIME" ||strtoupper($field['type']) == "TIMESTAMP"){
-    							$value = MySql::getMysqlDate($value,true);
+    							$value = $connection->formatDate($value,true);
     						}elseif(strtoupper($field['type']) == "BOOLEAN"){
     							try{
-    								$value = MySql::getMysqlBooleanValue($value);
+    								$value = $connection->formatBoolean($value);
     							}catch (InvalidInputException $e){
     								throw new InvalidInputException("Expected boolean value for $fieldName");
     							}
@@ -192,15 +199,15 @@ abstract class Model implements Constants{
     			$tableName = $class['tableName'];
     			$query = "INSERT INTO $tableName($columnNames) VALUES ($values)";
     		
-    			$result = $dbs->query($query);
+    			$result = $connection->query($query);
     		
     			if($result === FALSE){
-    				$errorMessage = "Error in creating $className \"".$dbs->error."\"";
+    				$errorMessage = "Error in creating $className \"".$connection->error."\"";
     				throw new BadQueryException($errorMessage);
     			}
     		
     			if(null !== RelationalMappingUtil::getAutoIncrementKey($class)){
-    				$autoIncrementValue = $dbs->insert_id;
+    				$autoIncrementValue = $connection->insert_id;
     				Reflection::setValue($className, RelationalMappingUtil::getAutoIncrementKey($class), $thisModelObject, $autoIncrementValue);
     			}
     			self::runTrigger($className, self::TRIGGER_EVENT_CREATE, self::TRIGGER_TYPE_POST, array($thisModelObject));
@@ -234,47 +241,48 @@ abstract class Model implements Constants{
         $calledClassName = get_called_class();
 
         $classList = RelationalMappingUtil::getClassConfiguration($calledClassName);
-        
-        $readAccessWhereClause = self::checkAccess($calledClassName, "ReadAccess", "User don't have access to Read");
-        
-        foreach ($classList as $className=>$class){
-        	self::runTrigger($className, self::TRIGGER_EVENT_READ, self::TRIGGER_TYPE_PRE, array(array("filters"=>$filters,"sort"=>$sort,"pagination"=>$pagination, "where"=>$where)));
-        }
-
-        $Clauses = self::generateClauses($classList, $filters, $sort, $where, $readAccessWhereClause);
-        
-        if($Clauses === false){
-        	return array();
-        }
-
-        $selectClause  = $Clauses["selectClause"];
-        $fromClause    = $Clauses["fromClause"];
-        $whereClause   = $Clauses["whereClause"];
-        $groupByClause = $Clauses["groupByClause"];
-        $orderByClause = $Clauses["orderByClause"];
-        $values        = $Clauses["values"];
-        
-        $i = 0;
-        
-        $classCount = count($classList);
-        foreach($classList as $className=>$class){
-            //skip the last class
-            if($i < $classCount-1){
-                if($whereClause != ""){
-                    $whereClause .=" AND ";
-                }
-                $parentClass = $classList[get_parent_class($className)];
-                $whereClause .= $class['prefix'].".".$class['fields'][RelationalMappingUtil::getReferenceKey($class)]['columnName']." = ".
-                    $parentClass['prefix'].".".$parentClass['fields'][RelationalMappingUtil::getPrimaryKey($parentClass)]['columnName'];
-            }
-            $i++;
-        }
-
         $resultList = array();
         try{
+        
+        	TransactionManager::startTransaction();
+        	$connection = TransactionManager::getConnection();
+        	
+	        $readAccessWhereClause = self::checkAccess($calledClassName, "ReadAccess", "User don't have access to Read");
+	        
+	        foreach ($classList as $className=>$class){
+	        	self::runTrigger($className, self::TRIGGER_EVENT_READ, self::TRIGGER_TYPE_PRE, array(array("filters"=>$filters,"sort"=>$sort,"pagination"=>$pagination, "where"=>$where)));
+	        }
+	
+	        
+	        $Clauses = self::generateClauses($connection,$classList, $filters, $sort, $where, $readAccessWhereClause);
+	        
+	        if($Clauses === false){
+	        	throw new DataNotFoundException("generateClauses returned false");
+	        }
+	
+	        $selectClause  = $Clauses["selectClause"];
+	        $fromClause    = $Clauses["fromClause"];
+	        $whereClause   = $Clauses["whereClause"];
+	        $groupByClause = $Clauses["groupByClause"];
+	        $orderByClause = $Clauses["orderByClause"];
+	        
+	        $i = 0;
+	        
+	        $classCount = count($classList);
+	        foreach($classList as $className=>$class){
+	            //skip the last class
+	            if($i < $classCount-1){
+	                if($whereClause != ""){
+	                    $whereClause .=" AND ";
+	                }
+	                $parentClass = $classList[get_parent_class($className)];
+	                $whereClause .= $class['prefix'].".".$class['fields'][RelationalMappingUtil::getReferenceKey($class)]['columnName']." = ".
+	                    $parentClass['prefix'].".".$parentClass['fields'][RelationalMappingUtil::getPrimaryKey($parentClass)]['columnName'];
+	            }
+	            $i++;
+	        }
 
-            TransactionManager::startTransaction();
-            $dbs = TransactionManager::getConnection();
+        
 
             if(isset($where) && $where != ""){
                 if($whereClause != ""){
@@ -308,19 +316,14 @@ abstract class Model implements Constants{
                 }
 
                 if($limit != ""){
-                	$limit = "LIMIT ".$dbs->real_escape_string($limit);
+                	$limit = "LIMIT ".$connection->encodeForSQLInjection($limit);
                 }
 
             }
             
-            // escape for sql injection
-            foreach ($values as $i=>$value){
-            	$whereClause = str_replace('$'.($i+1), $dbs->real_escape_string($value), $whereClause);
-            }
-
             $query = "SELECT $selectClause FROM $fromClause $whereClause $groupByClause $orderByClause $limit";
 
-            $result = $dbs->query($query);
+            $result = $connection->query($query);
 
             if(!$result){
                 throw new DataNotFoundException("Empty Results");
@@ -394,14 +397,25 @@ abstract class Model implements Constants{
         return $resultList;
     }
     
-    private static function generateClauses(&$classList,$filters,$sort,&$where,&$readAccessWhereClause){
+    /**
+     * 
+     * @param Connection $connection
+     * @param array $classList
+     * @param array $filters
+     * @param array $sort
+     * @param array $where
+     * @param string $readAccessWhereClause
+     * @throws InvalidForeignClassException
+     * @throws InvalidInputException
+     * @return string[][]
+     */
+    private static function generateClauses($connection, &$classList,$filters,$sort,&$where,&$readAccessWhereClause){
     	$fromClause = "";
     	$whereClause = "";
     	$selectClause = "";
     	$groupByClause = "";
     	$orderByClause = "";
     	
-    	$values = array();
     	$_processedSortArray = array();
     	
     	$allowedOperators = array( self::OPERATOR_LIKE,
@@ -467,9 +481,9 @@ abstract class Model implements Constants{
     	
     			$_fieldSelect = $fieldSelect;
     			if(strtoupper($field['type']) == "DATE"){
-    				$_fieldSelect = "date_format($fieldSelect,'".MySql::getOutputDateFormat()."')";
+    				$_fieldSelect = "date_format($fieldSelect,'".$connection->outputDateFormat()."')";
     			}elseif(strtoupper($field['type']) == "DATETIME" || strtoupper($field['type']) == "TIMESTAMP"){
-    				$_fieldSelect = "date_format($fieldSelect,'".MySql::getOutputDateTimeFormat()."')";
+    				$_fieldSelect = "date_format($fieldSelect,'".$connection->outputDateTimeFormat()."')";
     			}
     	
     			if(isset($field['group']) && (strtoupper($field['group']) == "TRUE" || $field['group'] === true) ){
@@ -505,20 +519,14 @@ abstract class Model implements Constants{
     	
     				$fieldWhereClause = null;
     				if($operator == self::OPERATOR_LIKE){
-    					$values[] = $value;
-    					$value = '$'.count($values);
+    					$value = $connection->encodeForSQLInjection($value);
     					$fieldWhereClause = "$_prefix.$_columnName $operator '%$value%'";
     				}else if($operator == self::OPERATOR_BETWEEN){
     					if(!is_array($value) || count($value) != 2){
     						throw new InvalidInputException("Invalid find argument for $fieldName");
     					}
-    					$minValue = $value[0];
-    					$values[] = $minValue;
-    					$minValue = '$'.count($values);
-    	
-    					$maxValue = $value[1];
-    					$values[] = $maxValue;
-    					$maxValue = '$'.count($values);
+    					$minValue = $connection->encodeForSQLInjection($value[0]);
+    					$maxValue = $connection->encodeForSQLInjection($value[1]);
     	
     					$fieldWhereClause = "$_prefix.$_columnName $operator '$minValue' AND '$maxValue'";
     				}else if($operator == self::OPERATOR_IN){
@@ -530,31 +538,26 @@ abstract class Model implements Constants{
     						return false;
     					}
     	
-    					$value = array_map(function($valueItem) use (&$values){
-    						$values[] = $valueItem;
-    						return '$'.count($values);
+    					$value = array_map(function($valueItem) use ($connection){
+    						return $connection->encodeForSQLInjection($valueItem);
     					}, $value);
     	
-    						$valueStr = implode("','",$value);
-    						$valueStr = "('".$valueStr."')";
-    						$fieldWhereClause = "$_prefix.$_columnName $operator $valueStr";
+    					$valueStr = implode("','",$value);
+    					$valueStr = "('".$valueStr."')";
+    					$fieldWhereClause = "$_prefix.$_columnName $operator $valueStr";
     				}else {
     					if($value === null){
     						$operator = "is";
     						$value = "null";
     					}else{
-    						$values[] = $value;
-    						$value = '$'.count($values);
+    						$value = $connection->encodeForSQLInjection($value);
     						$value = "'$value'";
     					}
-    	
     					$fieldWhereClause = "$_prefix.$_columnName $operator $value";
     				}
-    	
     				if($whereClause != ""){
     					$whereClause .= " AND ";
     				}
-    	
     				$whereClause .= "(".$fieldWhereClause.")";
     				unset($filters[$fieldName]);
     			}
@@ -588,7 +591,6 @@ abstract class Model implements Constants{
     	$Clauses["whereClause"]   = $whereClause;
     	$Clauses["groupByClause"] = $groupByClause;
     	$Clauses["orderByClause"] = $orderByClause;
-    	$Clauses["values"]        = $values;
     	 
     	return $Clauses;
     	
@@ -599,13 +601,13 @@ abstract class Model implements Constants{
     public static function getLastTotalRecords($pageSize = null){
         try{
             TransactionManager::startTransaction();
-            $dbs = TransactionManager::getConnection();
+            $connection = TransactionManager::getConnection();
             $fromClause = self::$_lastFindQuery['fromClause'];
             $whereClause = self::$_lastFindQuery['whereClause'];
             $groupByClause = self::$_lastFindQuery['groupByClause'];
             $orderByClause = self::$_lastFindQuery['orderByClause'];
 
-            $countResults = $dbs->query("SELECT COUNT(*) FROM $fromClause $whereClause $groupByClause $orderByClause");
+            $countResults = $connection->query("SELECT COUNT(*) FROM $fromClause $whereClause $groupByClause $orderByClause");
             if($countResults){
                 $countRow = $countResults->fetch_assoc();
                 $totalRecords = $countRow["COUNT(*)"];
@@ -630,9 +632,9 @@ abstract class Model implements Constants{
     protected function delete(){
         try{
             TransactionManager::startTransaction();
-            $dbs = TransactionManager::getConnection();
+            $conection = TransactionManager::getConnection();
 
-            $classList = $this->getClassConfigList();
+            $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             // check for Delete Access
             if(!TransactionManager::isSuperUser()){
@@ -691,7 +693,7 @@ abstract class Model implements Constants{
                 $query = "DELETE FROM $tableName WHERE ".$whereClause;
 
                 self::runTrigger($className, self::TRIGGER_EVENT_DELETE, self::TRIGGER_TYPE_PRE, array($this));
-                $result = $dbs->query($query);
+                $result = $conection->query($query);
 
                 if($result === FALSE){
                     $errorMessage = "Error in deleting ".get_class($this).":$className ";
@@ -728,11 +730,11 @@ abstract class Model implements Constants{
     protected function setAttributes($args){
         try{
             TransactionManager::startTransaction();
-            $dbs = TransactionManager::getConnection();
+            $connection = TransactionManager::getConnection();
 
             $modifiedClasses = array();
 
-            $classList = $this->getClassConfigList();
+            $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             // check for Update Access
             if(!TransactionManager::isSuperUser()){
@@ -771,12 +773,12 @@ abstract class Model implements Constants{
                             $originalVal = $value;
 
                             if(strtoupper($field['type']) == "DATE"){
-                                $value = MySql::getMysqlDate($value);
+                                $value = $connection->formatDate($value);
                             }elseif(strtoupper($field['type']) == "DATETIME" || strtoupper($field['type']) == "TIMESTAMP"){
-                                $value = MySql::getMysqlDate($value,true);
+                                $value = $connection->formatDate($value,true);
                             }elseif(strtoupper($field['type']) == "BOOLEAN"){
                                 try{
-                                    $value = MySql::getMysqlBooleanValue($value);
+                                    $value = $connection->formatBoolean($value);
                                 }catch (InvalidInputException $e){
                                     throw new InvalidInputException("Expected boolean value for $fieldName");
                                 }
@@ -797,10 +799,10 @@ abstract class Model implements Constants{
                                     }
                                 }
 
-                                $result = $dbs->query("SELECT ".$foreignPrimaryField['columnName']." FROM ".$foreignClassConf['tableName']." WHERE ".$foreignClassConf['fields'][$foreignFieldName]['columnName']." = '".$value."'");
+                                $result = $connection->query("SELECT ".$foreignPrimaryField['columnName']." FROM ".$foreignClassConf['tableName']." WHERE ".$foreignClassConf['fields'][$foreignFieldName]['columnName']." = '".$value."'");
 
                                 if($result === FALSE){
-                                    $errorMessage = "Error in updating $className \"".$dbs->error."\"";
+                                    $errorMessage = "Error in updating $className \"".$connection->error."\"";
                                     throw new BadQueryException($errorMessage);
                                 }
 
@@ -867,7 +869,7 @@ abstract class Model implements Constants{
                 $query = "UPDATE $tableName SET $setClause WHERE $recordIdentifier";
 
                 self::runTrigger($className, self::TRIGGER_EVENT_UPDATE, self::TRIGGER_TYPE_PRE, array($this,$modifiedFields));
-                $result = $dbs->query($query);
+                $result = $connection->query($query);
 
                 if($result === FALSE){
                     $errorMessage = "Error in updating ".get_class($this).":$className ";
@@ -910,7 +912,7 @@ abstract class Model implements Constants{
     protected function getAttributes($args){
         try{
 
-            $classList = $this->getClassConfigList();
+            $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             if($args == "*"){
                 $args = array();
@@ -991,15 +993,6 @@ abstract class Model implements Constants{
     protected function DeleteAccess(){
         return true;
     }
-
-    protected function getClassConfigList(){
-        if(!isset($this->classConfigList)){
-            $this->classConfigList = RelationalMappingUtil::getClassConfiguration(get_class($this));
-        }
-        return $this->classConfigList;
-    }
-    
-    
     
     private static function runTrigger($className,$triggerEvent,$triggerType,$parameters){
     	if(self::$_triggers == null){

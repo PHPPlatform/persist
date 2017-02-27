@@ -1,0 +1,258 @@
+<?php
+
+namespace PhpPlatform\Persist\Connection;
+
+use PhpPlatform\Persist\Connection\Connection;
+use PhpPlatform\Errors\Exceptions\Persistence\NoConnectionException;
+use PhpPlatform\Config\Settings;
+use PhpPlatform\Persist\Exception\InvalidInputException;
+
+class MySql extends \mysqli implements Connection{
+	
+	private $sqlLogFile = null;
+	private $outputDateFormat = null;
+	private $outputTimeFormat = null;
+	private $outputDateTimeFormat = null;
+	
+	private $transactionCount = 0;
+	
+	private $currentTimeZone = null;
+	
+	function __construct(){
+		if (extension_loaded('mysqli')) {
+			
+			$host       = Settings::getSettings('php-platform/persist','mysql.host');
+			$username   = Settings::getSettings('php-platform/persist','mysql.username');
+			$password   = Settings::getSettings('php-platform/persist','mysql.password');
+			$dbname     = Settings::getSettings('php-platform/persist','mysql.dbname');
+			$port       = Settings::getSettings('php-platform/persist','mysql.port');
+			$socket     = Settings::getSettings('php-platform/persist','mysql.socket');
+			
+			$this->outputDateFormat     = Settings::getSettings('php-platform/persist','mysql.outputDateFormat');
+			$this->outputTimeFormat     = Settings::getSettings('php-platform/persist','mysql.outputTimeFormat');
+			$this->outputDateTimeFormat = Settings::getSettings('php-platform/persist','mysql.outputDateTimeFormat');
+			
+			$this->sqlLogFile = Settings::getSettings('php-platform/persist','sqlLogFile');
+				
+			parent::__construct($host,$username,$password,$dbname,$port,$socket);
+			
+			if (mysqli_connect_error()) {
+				Throw new NoConnectionException("Error Connecting to Database. Please check your configuration , Cause ".mysqli_connect_error());
+			}
+		} else {
+			throw new NoConnectionException("Fatal Error :  mysqli extension is not loaded");
+		}
+	}
+
+
+    /**
+	 * @param string $queryString
+	 */
+	function query($queryString){
+		$this->log($queryString);
+		return parent::query($queryString);
+	}
+	
+	/**
+	 * this method turns on/off the auto committing of query
+	 *
+	 * @param boolean $autocommit
+	 */
+	function autocommit($mode){
+		parent::autocommit($mode);
+	}
+	
+	/**
+	 * this method closes the connection
+	 */
+	function close(){
+		parent::close();
+	}
+	
+	
+	// transaction methods
+	
+	/**
+	 * starts the transaction
+	 * 
+	 * @return integer , number of live transactions after executing this method
+	 */
+	function startTransaction(){
+		$this->transactionCount++;
+		$this->query("SAVEPOINT SAVE_POINT_".$this->transactionCount);
+		return $this->transactionCount;
+	}
+	
+	/**
+	 * commits the last transaction
+	 * 
+	 * @return integer , number of live transactions after executing this method
+	 */
+	function commitTransaction(){
+		$this->log("COMMIT SAVE_POINT_".$this->transactionCount);
+		$this->transactionCount--;
+		if($this->transactionCount == 0){
+			parent::commit();
+			$this->log("COMMIT REAL");
+		}
+		return $this->transactionCount;
+	}
+	
+	/**
+	 * aborts the last transaction
+	 * 
+	 * @return integer , number of live transactions after executing this method
+	 */
+	function abortTransaction(){
+		// rollback current transaction
+		$this->query("ROLLBACK TO SAVE_POINT_".$this->transactionCount);
+		$this->transactionCount--;
+		return $this->transactionCount;
+	}
+	
+	// sql injection
+	
+	/**
+	 * this method encodes the value to nullify SQL Injection
+	 *
+	 * @param string $value
+	 * @return string safe value
+	 */
+	function encodeForSQLInjection($value){
+		return parent::real_escape_string($value);
+	}
+	
+	// data type format methods
+	
+	/**
+	 * this method formats date for this connection
+	 * 
+	 * @param string $dateStr
+	 * @param boolean $includeTime
+	 * @param boolean $dateStrIsTimestamp
+	 */
+	function formatDate($dateStr=null,$includeTime=null,$dateStrIsTimestamp = false){
+		if($dateStr == null){
+			$date = time();
+		}else if(!$dateStrIsTimestamp){
+			$date = strtotime($dateStr);
+		}else{
+			$date = $dateStr;
+		}
+		$format = "Y-m-d";
+		if(isset($includeTime)){
+			$format .= " H:i:s";
+		}
+		$mysqlDate = date($format,$date);
+		return $mysqlDate;
+	}
+	
+	/**
+	 * this method formats time for this connection
+	 * 
+	 * @param string $ampm
+	 * @param number $hh
+	 * @param number $mm
+	 * @param number $ss
+	 */
+	function formatTime($ampm="AM",$hh=0,$mm=0,$ss=0){
+		if(strcasecmp($ampm, "PM") == 0){
+			if($hh != 12){
+				$hh = $hh+12;
+			}
+		}else{
+			if($hh == 12){
+				$hh = 0;
+			}
+		}
+		
+		$mysqlTime = $hh.":".$mm.":".$ss;
+		return $mysqlTime;
+	}
+	
+	/**
+	 * this method formats boolean for this connection
+	 * 
+	 * @param boolean|string $value
+	 */
+	function formatBoolean($value){
+		if(is_string($value)){
+			if(strtoupper($value) == "TRUE"){
+				$value = '1';
+			}else if(strtoupper($value) == "FALSE"){
+				$value = '0';
+			}else{
+				throw new InvalidInputException("Not a boolean value");
+			}
+		}elseif ($value == true){
+			$value = '1';
+		}elseif ($value == false){
+			$value = '0';
+		}else{
+			throw new InvalidInputException("Not a boolean value");
+		}
+		return $value;
+	}
+	
+	/**
+	 * this method returns output date format for this connection
+	 */
+	function outputDateFormat(){
+		return $this->outputDateFormat;
+	}
+	
+	/**
+	 * this method returns output date format for this connection
+	 */
+	function outputTimeFormat(){
+		return $this->outputTimeFormat;
+	}
+	
+	/**
+	 * this method returns output datetime format for this connection
+	 */
+	function outputDateTimeFormat(){
+		return $this->outputDateTimeFormat;
+	}
+	
+	/**
+	 * this method sets the timezone for this connection
+	 * @param string $timeZone , time zone in php
+	 */
+	function setTimeZone($timeZone){
+		if($this->currentTimeZone == $timeZone){
+			// $timeZone is set already 
+			return;
+		}
+		$this->currentTimeZone = $timeZone;
+		
+		//convert php timezone into mysql timezone format
+    	$dtz = new \DateTimeZone($timeZone);
+    	$timeInTimeZone = new \DateTime('now', $dtz);
+    	
+    	$sign = "+";
+    	$offset = $dtz->getOffset( $timeInTimeZone ) / 3600;
+    	if($offset < 0){
+    		$sign = "-";
+    		$offset = -1 * $offset;
+    	}
+    	$hourPart = intval($offset);
+    	$minutePart = $offset-$hourPart;
+    	$minutePart = $minutePart * 60;
+    	
+    	$timeZoneForMySql = $sign.$hourPart.":".$minutePart;
+    	
+    	// set the timezone in mysql
+    	$this->query("SET time_zone='$timeZoneForMySql'");
+    }
+    
+    private function log($message){
+    	if(isset($this->sqlLogFile)){
+    		if(!file_exists(dirname($this->sqlLogFile))){
+    			mkdir(dirname($this->sqlLogFile), 0777, true);
+    		}
+    		error_log($message.PHP_EOL,3,$this->sqlLogFile);
+    	}
+    }
+
+}

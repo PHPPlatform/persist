@@ -1,15 +1,20 @@
 {
-  "dbHost"    :"localhost",
-  "dbPort"    :"3306",
-  "dbName"    :"persisttest",
-  "dbUsername":"root",
-  "dbPassword":"root123",
-  "dbSocket"  :null,
 
-
+  "connection-class":"PhpPlatform\\Persist\\Connection\\MySql",
+  "mysql" : {
+    "host" : "localhost",
+    "username" : "root",
+    "password" : "",
+    "dbname" : "persisttest",
+    "port" : "3306",
+    "socket" : null,
+    
+    "outputDateFormat" : "%d-%b-%Y",
+    "outputTimeFormat" : "%H:%i:%S",
+    "outputDateTimeFormat" : "%d-%b-%Y %H:%i:%S"
+  },
+  
   "sqlLogFile":null,
-  "outputDateFormat":"%d-%b-%Y",
-  "outputDateTimeFormat":"%d-%b-%Y %H:%i:%S",
   
   "triggers":{
   }
