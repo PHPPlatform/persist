@@ -12,6 +12,7 @@ use PhpPlatform\Persist\Model;
 use PhpPlatform\Tests\Persist\Dao\TChild1;
 use PhpPlatform\Tests\Persist\Dao\TParent;
 use PhpPlatform\Persist\TransactionManager;
+use PhpPlatform\Tests\Persist\Dao\Relations\TMany2;
 
 class ModelFindTest extends ModelTest{
 
@@ -196,4 +197,21 @@ class ModelFindTest extends ModelTest{
         $this->assertEquals(array(array($findResults),array($findResults)),$_ENV[TRIGGER_TEST_LOG]["readPostTrigger"]);
         
     }
+    
+    function testFindUsingGroupBy(){
+    	/**
+    	 * data
+    	 */
+    	$tMany2Obj1 = TMany2::create(array("fMany2Name"=>"Many2_1"));
+    	$tMany2Obj2 = TMany2::create(array("fMany2Name"=>"Many2_2"));
+    	
+    	$tMany3Obj1 = TMany2::create(array("fMany3Name"=>"Many3_1"));
+    	$tMany3Obj2 = TMany2::create(array("fMany3Name"=>"Many3_2"));
+    	$tMany3Obj3 = TMany2::create(array("fMany3Name"=>"Many3_3"));
+    	$tMany3Obj4 = TMany2::create(array("fMany3Name"=>"Many3_4"));
+    	 
+    	
+    	
+    }
+    
 }

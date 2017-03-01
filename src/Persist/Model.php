@@ -202,12 +202,12 @@ abstract class Model implements Constants{
     			$result = $connection->query($query);
     		
     			if($result === FALSE){
-    				$errorMessage = "Error in creating $className \"".$connection->error."\"";
+    				$errorMessage = "Error in creating $className \"".$connection->lastError()."\"";
     				throw new BadQueryException($errorMessage);
     			}
     		
     			if(null !== RelationalMappingUtil::getAutoIncrementKey($class)){
-    				$autoIncrementValue = $connection->insert_id;
+    				$autoIncrementValue = $connection->lastInsertedId();
     				Reflection::setValue($className, RelationalMappingUtil::getAutoIncrementKey($class), $thisModelObject, $autoIncrementValue);
     			}
     			self::runTrigger($className, self::TRIGGER_EVENT_CREATE, self::TRIGGER_TYPE_POST, array($thisModelObject));
@@ -326,7 +326,7 @@ abstract class Model implements Constants{
             $result = $connection->query($query);
 
             if(!$result){
-                throw new DataNotFoundException("Empty Results");
+                throw new BadQueryException("Select Failed : "+$connection->lastError());
             }
 
             self::$_lastFindQuery = array("selectClause" =>$selectClause,

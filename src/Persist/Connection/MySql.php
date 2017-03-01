@@ -59,7 +59,25 @@ class MySql extends \mysqli implements Connection{
 	 * @param boolean $autocommit
 	 */
 	function autocommit($mode){
-		parent::autocommit($mode);
+		return parent::autocommit($mode);
+	}
+	
+	/**
+	 * this method returns the error from last query , if any
+	 *
+	 * @return string
+	 */
+	function lastError(){
+		return $this->error;
+	}
+	
+	/**
+	 * this method returns the last auto incremented id
+	 *
+	 * @return int
+	 */
+	function lastInsertedId(){
+		return $this->insert_id;
 	}
 	
 	/**

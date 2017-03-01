@@ -3,44 +3,46 @@
  * User: Raaghu
  */
 
-namespace PhpPlatform\Tests\Persist\Dao;
+namespace PhpPlatform\Tests\Persist\Dao\Relations;
 
 use PhpPlatform\Persist\Model;
 
 /**
- * @tableName t_normal2
- * @prefix TNormal2
+ * @tableName t_many2_to_many3
+ * @prefix TMany2ToMany3
  */
-class TNormal2 extends Model {
+class TMany2ToMany3 extends Model {
     /**
-     * @columnName F_PRIMARY_ID
+     * @columnName F_MANY2_PRIMARY_ID
      * @type integer
-     * @primary
-     * @autoIncrement
-     * @get
-     */
-    private $fPrimaryId = null;
-
-    /**
-     * @columnName F_VARCHAR
-     * @type varchar
      * @set
      * @get
+     * @groupBy
      */
-    private $fVarchar = null;
+    private $fMany2PrimaryId = null;
+
+    /**
+     * @columnName F_MANY3_PRIMARY_ID
+     * @type integer
+     * @set
+     * @get
+     * @group
+     */
+    private $fMany3PrimaryId = null;
     
     /**
-     * @columnName F_BOOLEAN
-     * @type boolean
-     * @set
+     * @columnName F_MANY3_PRIMARY_ID
+     * @type varchar
+     * @foreignField "PhpPlatform\\Tests\\Persist\\Dao\\Relations\\TMany3->fMany3Name"
      * @get
+     * @group
      */
-    private $fBoolean = null;
+    private $fMany3Name = null;
+    
 
-
-    function __construct($fPrimaryId = null, $fBoolean = null){
-        $this->fPrimaryId = $fPrimaryId;
-        $this->fBoolean = $fBoolean;
+    function __construct($fMany2PrimaryId = null,$fMany3PrimaryId = null){
+        $this->fMany2PrimaryId = $fMany2PrimaryId;
+        $this->fMany3PrimaryId = $fMany3PrimaryId;
         parent::__construct();
     }
 

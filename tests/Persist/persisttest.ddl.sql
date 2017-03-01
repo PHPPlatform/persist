@@ -111,6 +111,70 @@ CREATE TABLE IF NOT EXISTS `t_super_parent` (
   PRIMARY KEY (`F_PRIMARY_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_one`
+--
+
+CREATE TABLE IF NOT EXISTS `t_one` (
+  `F_PRIMARY_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `F_ONE_NAME` varchar(100) NOT NULL,
+  PRIMARY KEY (`F_PRIMARY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_many1`
+--
+
+CREATE TABLE IF NOT EXISTS `t_many1` (
+  `F_PRIMARY_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `F_MANY1_NAME` varchar(100) NOT NULL,
+  `F_ONE_PRIMARY_ID` int(11) NOT NULL ,
+  PRIMARY KEY (`F_PRIMARY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_many2`
+--
+
+CREATE TABLE IF NOT EXISTS `t_many2` (
+  `F_PRIMARY_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `F_MANY2_NAME` varchar(100) NOT NULL,
+  PRIMARY KEY (`F_PRIMARY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_many3`
+--
+
+CREATE TABLE IF NOT EXISTS `t_many3` (
+  `F_PRIMARY_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `F_MANY3_NAME` varchar(100) NOT NULL,
+  PRIMARY KEY (`F_PRIMARY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `t_many2_to_many3`
+--
+
+CREATE TABLE IF NOT EXISTS `t_many2_to_many3` (
+  `F_MANY2_PRIMARY_ID` int(11) NOT NULL,
+  `F_MANY3_PRIMARY_ID` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
 --
 -- Constraints for dumped tables
 --
@@ -140,4 +204,18 @@ ALTER TABLE `t_normal1`
 ALTER TABLE `t_parent`
   ADD CONSTRAINT `t_parent_ibfk_2` FOREIGN KEY (`F_PARENT_ID`) REFERENCES `t_super_parent` (`F_PRIMARY_ID`);
 
+--
+-- Constraints for table `t_many1`
+--
+ALTER TABLE `t_many1`
+  ADD CONSTRAINT `t_many1_ibfk_1` FOREIGN KEY (`F_ONE_PRIMARY_ID`) REFERENCES `t_one` (`F_PRIMARY_ID`);
+
+--
+-- Constraints for table `t_many2_to_many3`
+--
+ALTER TABLE `t_many2_to_many3`
+  ADD CONSTRAINT `t_many2_to_many3_ibfk_1` FOREIGN KEY (`F_MANY2_PRIMARY_ID`) REFERENCES `t_many2` (`F_PRIMARY_ID`),
+  ADD CONSTRAINT `t_many2_to_many3_ibfk_2` FOREIGN KEY (`F_MANY3_PRIMARY_ID`) REFERENCES `t_many3` (`F_PRIMARY_ID`);
+
+  
 SET FOREIGN_KEY_CHECKS = 1;

@@ -3,14 +3,15 @@
  * User: Raaghu
  */
 
-namespace PhpPlatform\Tests\Persist\Dao;
+namespace PhpPlatform\Tests\Persist\Dao\Relations;
 
+use PhpPlatform\Persist\Model;
 
 /**
- * @tableName t_child2
- * @prefix TChild2
+ * @tableName t_one
+ * @prefix TOne
  */
-class TChild2 extends TParent {
+class TOne extends Model {
     /**
      * @columnName F_PRIMARY_ID
      * @type integer
@@ -21,37 +22,12 @@ class TChild2 extends TParent {
     private $fPrimaryId = null;
 
     /**
-     * @columnName F_DATE
-     * @type date
-     * @set
-     * @get
-     */
-    private $fDate = null;
-
-    /**
-     * @columnName F_PARENT_ID
-     * @type integer
-     * @reference
-     * @get
-     */
-    private $fParentId = null;
-
-    /**
-     * @columnName F_FOREIGN
-     * @type integer
-     * @set
-     * @get
-     */
-    private $fForeign = null;
-
-    /**
-     * @columnName F_FOREIGN
+     * @columnName F_ONE_NAME
      * @type varchar
-     * @foreignField "PhpPlatform\\Tests\\Persist\\Dao\\TNormal2->fVarchar"
+     * @set
      * @get
      */
-    private $fForeignVarchar = null;
-
+    private $fOneName = null;
 
     function __construct($fPrimaryId = null){
         $this->fPrimaryId = $fPrimaryId;
@@ -81,22 +57,6 @@ class TChild2 extends TParent {
 
     function getAttributes($args){
         return parent::getAttributes($args);
-    }
-
-    static function CreateAccess(){
-        return true;
-    }
-
-    static function ReadAccess(){
-        return true;
-    }
-
-    function UpdateAccess(){
-        return true;
-    }
-
-    function DeleteAccess(){
-        return true;
     }
 
 }

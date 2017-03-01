@@ -45,11 +45,11 @@ class TSuperParent extends Model {
     function setAttribute($name,$value){
         $args = array();
         $args[$name] = $value;
-        $attrValues = $this->setAttributes($args);
+        return $this->setAttributes($args);
     }
 
     function setAttributes($args){
-        parent::setAttributes($args);
+        return parent::setAttributes($args);
     }
 
     function getAttribute($name){

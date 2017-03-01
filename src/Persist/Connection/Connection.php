@@ -17,6 +17,21 @@ interface Connection {
 	function autocommit($mode);
 	
 	/**
+	 * this method returns the error from last query , if any
+	 * 
+	 * @return string 
+	 */
+	function lastError();
+	
+	/**
+	 * this method returns the last auto incremented id
+	 *
+	 * @return int
+	 */
+	function lastInsertedId();
+	
+	
+	/**
 	 * this method closes the connection
 	 */
 	function close();
