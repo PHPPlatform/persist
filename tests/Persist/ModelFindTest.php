@@ -207,8 +207,8 @@ class ModelFindTest extends ModelTest{
     	$tMany2Obj1 = TMany2::create(array("fMany2Name"=>"Many2_1"));
     	$tMany2Obj2 = TMany2::create(array("fMany2Name"=>"Many2_2"));
     	
-    	$tMany3Obj1 = TMany3::create(array("fMany3Name"=>"Many3_1"));
-    	$tMany3Obj2 = TMany3::create(array("fMany3Name"=>"Many3_2"));
+    	$tMany3Obj1 = TMany3::create(array("fMany3Name"=>"Many3_1","fMany3Bool"=>true));
+    	$tMany3Obj2 = TMany3::create(array("fMany3Name"=>"Many3_2","fMany3Bool"=>"FALSE"));
     	$tMany3Obj3 = TMany3::create(array("fMany3Name"=>"Many3_3"));
     	$tMany3Obj4 = TMany3::create(array("fMany3Name"=>"Many3_4"));
     	 
@@ -231,6 +231,11 @@ class ModelFindTest extends ModelTest{
     					"Many3_1",
     					"Many3_2",
     					"Many3_3"
+    			),
+    			"fMany3Bool"=>array(
+    					true,
+    					false,
+    					false
     			)
     	), $results[0]->getAttributes("*"));
     	

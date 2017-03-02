@@ -28,6 +28,14 @@ class TMany3 extends Model {
      * @get
      */
     private $fMany3Name = null;
+    
+    /**
+     * @columnName F_MANY3_BOOL
+     * @type boolean
+     * @set
+     * @get
+     */
+    private $fMany3Bool = null;
 
     function __construct($fPrimaryId = null){
         $this->fPrimaryId = $fPrimaryId;

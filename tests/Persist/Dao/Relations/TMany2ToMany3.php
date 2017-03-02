@@ -39,6 +39,15 @@ class TMany2ToMany3 extends Model {
      */
     private $fMany3Name = null;
     
+    /**
+     * @columnName F_MANY3_PRIMARY_ID
+     * @type boolean
+     * @foreignField "PhpPlatform\\Tests\\Persist\\Dao\\Relations\\TMany3->fMany3Bool"
+     * @get
+     * @group
+     */
+    private $fMany3Bool = null;
+    
 
     function __construct($fMany2PrimaryId = null,$fMany3PrimaryId = null){
         $this->fMany2PrimaryId = $fMany2PrimaryId;
