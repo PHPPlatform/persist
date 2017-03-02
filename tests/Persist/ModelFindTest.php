@@ -13,6 +13,8 @@ use PhpPlatform\Tests\Persist\Dao\TChild1;
 use PhpPlatform\Tests\Persist\Dao\TParent;
 use PhpPlatform\Persist\TransactionManager;
 use PhpPlatform\Tests\Persist\Dao\Relations\TMany2;
+use PhpPlatform\Tests\Persist\Dao\Relations\TMany3;
+use PhpPlatform\Tests\Persist\Dao\Relations\TMany2ToMany3;
 
 class ModelFindTest extends ModelTest{
 
@@ -205,12 +207,32 @@ class ModelFindTest extends ModelTest{
     	$tMany2Obj1 = TMany2::create(array("fMany2Name"=>"Many2_1"));
     	$tMany2Obj2 = TMany2::create(array("fMany2Name"=>"Many2_2"));
     	
-    	$tMany3Obj1 = TMany2::create(array("fMany3Name"=>"Many3_1"));
-    	$tMany3Obj2 = TMany2::create(array("fMany3Name"=>"Many3_2"));
-    	$tMany3Obj3 = TMany2::create(array("fMany3Name"=>"Many3_3"));
-    	$tMany3Obj4 = TMany2::create(array("fMany3Name"=>"Many3_4"));
+    	$tMany3Obj1 = TMany3::create(array("fMany3Name"=>"Many3_1"));
+    	$tMany3Obj2 = TMany3::create(array("fMany3Name"=>"Many3_2"));
+    	$tMany3Obj3 = TMany3::create(array("fMany3Name"=>"Many3_3"));
+    	$tMany3Obj4 = TMany3::create(array("fMany3Name"=>"Many3_4"));
+    	 
+    	TMany2ToMany3::create(array('fMany2PrimaryId'=>$tMany2Obj1->getAttribute('fPrimaryId'),'fMany3PrimaryId'=>$tMany3Obj1->getAttribute('fPrimaryId')));
+    	TMany2ToMany3::create(array('fMany2PrimaryId'=>$tMany2Obj1->getAttribute('fPrimaryId'),'fMany3PrimaryId'=>$tMany3Obj2->getAttribute('fPrimaryId')));
+    	TMany2ToMany3::create(array('fMany2PrimaryId'=>$tMany2Obj1->getAttribute('fPrimaryId'),'fMany3PrimaryId'=>$tMany3Obj3->getAttribute('fPrimaryId')));
     	 
     	
+    	$results = TMany2ToMany3::find(array());
+    	
+    	parent::assertCount(1, $results);
+    	parent::assertEquals(array(
+    			"fMany2PrimaryId"=>$tMany2Obj1->getAttribute('fPrimaryId'),
+    			"fMany3PrimaryId"=>array(
+    					$tMany3Obj1->getAttribute('fPrimaryId'),
+    					$tMany3Obj2->getAttribute('fPrimaryId'),
+    					$tMany3Obj3->getAttribute('fPrimaryId')
+    			),
+    			"fMany3Name"=>array(
+    					"Many3_1",
+    					"Many3_2",
+    					"Many3_3"
+    			)
+    	), $results[0]->getAttributes("*"));
     	
     }
     
