@@ -75,21 +75,25 @@ interface Connection {
 	/**
 	 * this method formats date for this connection
 	 * 
-	 * @param string $dateStr
+	 * @param string|integer $dateStr time in string or timestamp in integer
 	 * @param boolean $includeTime
-	 * @param boolean $dateStrIsTimestamp
+	 * 
+	 * @return string , formatted date as string
+	 * 
 	 */
-	function formatDate($dateStr=null,$includeTime=null,$dateStrIsTimestamp = false);
+	function formatDate($dateStr=null,$includeTime=null);
 	
 	/**
 	 * this method formats time for this connection
 	 * 
-	 * @param string $ampm
 	 * @param number $hh
 	 * @param number $mm
 	 * @param number $ss
+	 * @param string $ampm
+	 * 
+	 * @return string represenation of time
 	 */
-	function formatTime($ampm="AM",$hh=0,$mm=0,$ss=0);
+	function formatTime($hh=0,$mm=0,$ss=0,$ampm="AM");
 	
 	/**
 	 * this method formats boolean for this connection

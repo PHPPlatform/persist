@@ -145,17 +145,21 @@ class MySql extends \mysqli implements Connection{
 	/**
 	 * this method formats date for this connection
 	 * 
-	 * @param string $dateStr
+	 * @param string|integer $dateStr time in string or timestamp in integer
 	 * @param boolean $includeTime
-	 * @param boolean $dateStrIsTimestamp
+	 * 
+	 * @return string , formatted date as string
+	 * 
 	 */
-	function formatDate($dateStr=null,$includeTime=null,$dateStrIsTimestamp = false){
-		if($dateStr == null){
+	function formatDate($dateStr=null,$includeTime=null){
+		if($dateStr === null){
 			$date = time();
-		}else if(!$dateStrIsTimestamp){
+		}else if(is_string($dateStr)){
 			$date = strtotime($dateStr);
-		}else{
+		}else if(is_integer($dateStr)){
 			$date = $dateStr;
+		}else{
+			throw new InvalidInputException('1st parameter should be either a string or integer or null');
 		}
 		$format = "Y-m-d";
 		if(isset($includeTime)){
@@ -168,20 +172,50 @@ class MySql extends \mysqli implements Connection{
 	/**
 	 * this method formats time for this connection
 	 * 
-	 * @param string $ampm
 	 * @param number $hh
 	 * @param number $mm
 	 * @param number $ss
+	 * @param string $ampm
+	 * 
+	 * @return string represenation of time
 	 */
-	function formatTime($ampm="AM",$hh=0,$mm=0,$ss=0){
-		if(strcasecmp($ampm, "PM") == 0){
+	function formatTime($hh=0,$mm=0,$ss=0,$ampm="AM"){
+		
+		$ampm = strtoupper($ampm);
+		
+		$hhUpperBound = 12;
+		if($ampm == "PM"){
+			$hhUpperBound--;
+		}
+		
+		if(!( (0 <= $hh && $hh <= $hhUpperBound) && 
+			  (0 <= $mm && $mm <= 60) &&
+			  (0 <= $ss && $ss <= 60)	)
+				){
+			throw new InvalidInputException('invalid parameters');
+		}
+		
+		if($ampm == "PM"){
 			if($hh != 12){
 				$hh = $hh+12;
 			}
-		}else{
+		}else if($ampm == "AM"){
 			if($hh == 12){
 				$hh = 0;
 			}
+		}else{
+			throw new InvalidInputException('last parameter should be either a AM or PM in string');
+		}
+		if($hh < 10){
+			$hh = "0".$hh;
+		}
+		
+		if($mm < 10){
+			$mm = "0".$mm;
+		}
+		
+		if($ss < 10){
+			$ss = "0".$ss;
 		}
 		
 		$mysqlTime = $hh.":".$mm.":".$ss;
