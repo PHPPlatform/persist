@@ -62,6 +62,35 @@ class TestConnection extends ModelTest{
 			parent::assertEquals("invalid parameters", $e->getMessage());
 		}
 		parent::assertTrue($isException);
+	}
+	
+	function testFormatBoolean(){
+		$connection = ConnectionFactory::getConnection();
+		
+		$result = $connection->formatBoolean('True');
+		parent::assertEquals('1',$result);
+		
+		$result = $connection->formatBoolean('FaLse');
+		parent::assertEquals('0',$result);
+		
+		$result = $connection->formatBoolean(true);
+		parent::assertEquals('1',$result);
+		
+		$result = $connection->formatBoolean(0);
+		parent::assertEquals('0',$result);
+
+		$result = $connection->formatBoolean($connection); // by default an object is true
+		parent::assertEquals('1',$result);
+		
+		$isException = false;
+		try{
+			$result = $connection->formatBoolean("myName"); //Wrong input
+		}catch (InvalidInputException $e){
+			$isException = true;
+			parent::assertEquals("Not a boolean value", $e->getMessage());
+		}
+		parent::assertTrue($isException);
+		
 		
 	}
 	
