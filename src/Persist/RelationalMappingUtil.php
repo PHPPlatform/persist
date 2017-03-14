@@ -5,6 +5,7 @@ namespace PhpPlatform\Persist;
 class RelationalMappingUtil {
 	
 	private static $relationalMappings = array();
+	const TABLE_NAME_GENERATOR = "generateTableName";
 	
 	public static function getPrimaryKey(&$classInfo){
 		if(array_key_exists('primayFieldName', $classInfo)){
@@ -92,6 +93,23 @@ class RelationalMappingUtil {
 			$className = get_parent_class($className);
 		}
 		return $classList;
+	}
+	
+	public static function getTableName(&$classInfo,$object){
+		if(is_string($object)){
+			$className = $object;
+			$object = null;
+		}else{
+			$className = get_class($object);
+		}
+		if(!isset($classInfo["realTableName"])){
+			if(Reflection::hasMethod($className, self::TABLE_NAME_GENERATOR)){
+				$classInfo["realTableName"] = Reflection::invokeArgs($className, self::TABLE_NAME_GENERATOR, null,array($classInfo));
+			}else if(isset($classInfo["tableName"])){
+				$classInfo["realTableName"] = $classInfo["tableName"];
+			}
+		}
+		return $classInfo["realTableName"];
 	}
 	
 	

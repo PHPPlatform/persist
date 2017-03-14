@@ -196,7 +196,7 @@ abstract class Model implements Constants{
     		
     			self::runTrigger($className, self::TRIGGER_EVENT_CREATE, self::TRIGGER_TYPE_PRE, array($thisModelObject));
     			
-    			$tableName = $class['tableName'];
+    			$tableName = RelationalMappingUtil::getTableName($class, $thisModelObject);
     			$query = "INSERT INTO $tableName($columnNames) VALUES ($values)";
     		
     			$result = $connection->query($query);
@@ -435,7 +435,7 @@ abstract class Model implements Constants{
     		if($fromClause != ""){
     			$fromClause .= ", ";
     		}
-    		$fromClause .= $class['tableName']." ".$prefix;
+    		$fromClause .= RelationalMappingUtil::getTableName($class, $className)." ".$prefix;
     	
     		$sourceColumnsForForeignFields = array();
     	
@@ -471,7 +471,8 @@ abstract class Model implements Constants{
     				$_prefix = $foreignClassConf['prefix']."_".$field['columnName'];
     				$_columnName = $foreignFieldForeignColumnName;
     				if(!in_array($field['columnName'],$sourceColumnsForForeignFields)){
-    					$fromClause .= " LEFT JOIN ".$foreignClassConf['tableName']." ".$_prefix." ON ".$_prefix.".".$foreignClassConf['fields'][$foreignPrimaryField]['columnName']." = ".$class['prefix'].".".$field['columnName'];
+    					$foreignClassTableName = RelationalMappingUtil::getTableName($foreignClassConf, $foreignClassName);
+    					$fromClause .= " LEFT JOIN ".$foreignClassTableName." ".$_prefix." ON ".$_prefix.".".$foreignClassConf['fields'][$foreignPrimaryField]['columnName']." = ".$class['prefix'].".".$field['columnName'];
     					$sourceColumnsForForeignFields[] = $field['columnName'];
     				}
     			}
@@ -675,7 +676,7 @@ abstract class Model implements Constants{
                 }
 
 
-                $tableName = $class['tableName'];
+                $tableName = RelationalMappingUtil::getTableName($class, $this);
                 $query = "DELETE FROM $tableName WHERE ".$whereClause;
 
                 self::runTrigger($className, self::TRIGGER_EVENT_DELETE, self::TRIGGER_TYPE_PRE, array($this));
@@ -770,8 +771,10 @@ abstract class Model implements Constants{
                                         break;
                                     }
                                 }
+                                
+                                $foreignClassTableName = RelationalMappingUtil::getTableName($foreignClassConf, $foreignClassName);
 
-                                $result = $connection->query("SELECT ".$foreignPrimaryField['columnName']." FROM ".$foreignClassConf['tableName']." WHERE ".$foreignClassConf['fields'][$foreignFieldName]['columnName']." = '".$value."'");
+                                $result = $connection->query("SELECT ".$foreignPrimaryField['columnName']." FROM ".$foreignClassTableName." WHERE ".$foreignClassConf['fields'][$foreignFieldName]['columnName']." = '".$value."'");
 
                                 if($result === FALSE){
                                     $errorMessage = "Error in updating $className \"".$connection->error."\"";
@@ -837,7 +840,7 @@ abstract class Model implements Constants{
                     continue;
                 }
 
-                $tableName = $class['tableName'];
+                $tableName = RelationalMappingUtil::getTableName($class, $this);
                 $query = "UPDATE $tableName SET $setClause WHERE $recordIdentifier";
 
                 self::runTrigger($className, self::TRIGGER_EVENT_UPDATE, self::TRIGGER_TYPE_PRE, array($this,$modifiedFields));

@@ -37,11 +37,26 @@ class Reflection {
 		return self::getReflectionClass($className)->newInstanceArgs($args);
 	}
 	
+	public static function hasProperty($className,$propertyName){
+		$reflectionClass = self::getReflectionClass($className);
+		return $reflectionClass->hasProperty($propertyName);
+	}
+	
+	public static function hasConstant($className,$constantName){
+		$reflectionClass = self::getReflectionClass($className);
+		return $reflectionClass->hasConstant($constantName);
+	}
+	
+	public static function hasMethod($className,$methodName){
+		$reflectionClass = self::getReflectionClass($className);
+		return $reflectionClass->hasMethod($methodName);
+	}
+	
 	/**
 	 *
 	 * @param unknown $className
 	 * @param unknown $propertyName
-	 * @return ReflectionProperty
+	 * @return \ReflectionClass
 	 */
 	private static function getReflectionClass($className){
 		if(isset(self::$reflectionClasses[$className])){
@@ -57,7 +72,7 @@ class Reflection {
 	 * 
 	 * @param unknown $className
 	 * @param unknown $propertyName
-	 * @return ReflectionProperty
+	 * @return \ReflectionProperty
 	 */
 	private static function getReflectionProperty($className,$propertyName){
 		if(isset(self::$reflectionProperties[$className.'::'.$propertyName])){
@@ -80,7 +95,7 @@ class Reflection {
 	 * 
 	 * @param unknown $className
 	 * @param unknown $methodName
-	 * @return ReflectionMethod
+	 * @return \ReflectionMethod
 	 */
 	private static function getReflectionMethod($className,$methodName){
 		if(isset(self::$reflectionMethods[$className.'::'.$methodName])){
