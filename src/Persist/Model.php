@@ -666,11 +666,16 @@ abstract class Model implements Constants{
                             $reflectionProperty = $reflectionClass->getProperty($fieldName);
                             $reflectionProperty->setAccessible(true);
                             $fieldValue = $reflectionProperty->getValue($this);
+                            if($fieldValue == null){
+                            	$fieldValue = 'NULL';
+                            }else{
+                            	$fieldValue = "'$fieldValue'";
+                            }
 
                             if($whereClause != ""){
                                 $whereClause .= " AND ";
                             }
-                            $whereClause .= ($field['columnName']." = '$fieldValue'");
+                            $whereClause .= ($field['columnName']." = $fieldValue");
                         }
                     }
                 }
