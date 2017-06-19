@@ -61,7 +61,7 @@ class TParent extends TSuperParent {
     /**
      * @access "person|noOne"
      */
-    static function find($filters,$sort,$pagination,$where){
+    static function find($filters, $sort = null, $pagination = null, $where = null){
     	return parent::find($filters,$sort,$pagination,$where);
     }
 
