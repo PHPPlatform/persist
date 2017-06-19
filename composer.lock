@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "641342f336a9f162f8e811ceb6634bf8",
+    "content-hash": "587c5f5cd05158cc1b87de478436cbd5",
     "packages": [
         {
             "name": "php-platform/annotations",
@@ -50,16 +50,16 @@
         },
         {
             "name": "php-platform/config",
-            "version": "v0.1.3",
+            "version": "v0.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPPlatform/config.git",
-                "reference": "4b59d451dfb220582575338a709e18e4ec89fce5"
+                "reference": "74a7f2e40411d94cdc6c48d2a7773965930964e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPPlatform/config/zipball/4b59d451dfb220582575338a709e18e4ec89fce5",
-                "reference": "4b59d451dfb220582575338a709e18e4ec89fce5",
+                "url": "https://api.github.com/repos/PHPPlatform/config/zipball/74a7f2e40411d94cdc6c48d2a7773965930964e0",
+                "reference": "74a7f2e40411d94cdc6c48d2a7773965930964e0",
                 "shasum": ""
             },
             "require": {
@@ -90,7 +90,7 @@
                 "config",
                 "php-platform"
             ],
-            "time": "2017-03-08T15:22:03+00:00"
+            "time": "2017-06-06T07:06:08+00:00"
         },
         {
             "name": "php-platform/errors",
@@ -140,16 +140,16 @@
         },
         {
             "name": "php-platform/json-cache",
-            "version": "v0.1.1",
+            "version": "v0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPPlatform/json-cache.git",
-                "reference": "0c6621fda8247c4720a74fbc9fdf42c4bb68cb1f"
+                "reference": "e9279ab977a16d586023c2b99d343f3d8c497d9a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPPlatform/json-cache/zipball/0c6621fda8247c4720a74fbc9fdf42c4bb68cb1f",
-                "reference": "0c6621fda8247c4720a74fbc9fdf42c4bb68cb1f",
+                "url": "https://api.github.com/repos/PHPPlatform/json-cache/zipball/e9279ab977a16d586023c2b99d343f3d8c497d9a",
+                "reference": "e9279ab977a16d586023c2b99d343f3d8c497d9a",
                 "shasum": ""
             },
             "require": {
@@ -181,7 +181,53 @@
                 "metadata",
                 "php-platform"
             ],
-            "time": "2017-01-19T14:15:38+00:00"
+            "time": "2017-03-31T09:46:34+00:00"
+        },
+        {
+            "name": "php-platform/session",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPPlatform/session.git",
+                "reference": "7b4fafa12ccc4b67c161cb1d15166151e2291424"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPPlatform/session/zipball/7b4fafa12ccc4b67c161cb1d15166151e2291424",
+                "reference": "7b4fafa12ccc4b67c161cb1d15166151e2291424",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3",
+                "php-platform/config": "~0.1",
+                "php-platform/errors": "~0.1"
+            },
+            "require-dev": {
+                "php-platform/mock-config": "~0.1",
+                "phpunit/phpunit": "~4.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PhpPlatform\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Raghavendra K R",
+                    "email": "krraghavendra@yahoo.co.in",
+                    "homepage": "http://krraghavendra.in",
+                    "role": "Software Developer"
+                }
+            ],
+            "homepage": "https://github.com/PHPPlatform/session",
+            "keywords": [
+                "collaboration",
+                "php session",
+                "session"
+            ],
+            "time": "2017-03-29T17:05:05+00:00"
         }
     ],
     "packages-dev": [
@@ -286,22 +332,23 @@
         },
         {
             "name": "php-platform/persist-unit",
-            "version": "v0.1.3",
+            "version": "v0.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPPlatform/persist-unit.git",
-                "reference": "8053498d8ef60d4d3f2faab2dd97c3a71cc9126c"
+                "reference": "95c236a5cf04f1921725b564be70c88dd61622cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/8053498d8ef60d4d3f2faab2dd97c3a71cc9126c",
-                "reference": "8053498d8ef60d4d3f2faab2dd97c3a71cc9126c",
+                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/95c236a5cf04f1921725b564be70c88dd61622cb",
+                "reference": "95c236a5cf04f1921725b564be70c88dd61622cb",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3",
                 "php-platform/errors": "~0.1",
                 "php-platform/mock-config": "~0.1",
+                "php-platform/session": "~0.1",
                 "phpunit/dbunit": "~1.4",
                 "phpunit/phpunit": "~4.8"
             },
@@ -331,7 +378,7 @@
                 "relational Schema",
                 "unit-test"
             ],
-            "time": "2017-03-13T14:58:03+00:00"
+            "time": "2017-06-19T10:14:59+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -1043,23 +1090,23 @@
         },
         {
             "name": "sebastian/diff",
-            "version": "1.4.1",
+            "version": "1.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/diff.git",
-                "reference": "13edfd8706462032c2f52b4b862974dd46b71c9e"
+                "reference": "7f066a26a962dbe58ddea9f72a4e82874a3975a4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/diff/zipball/13edfd8706462032c2f52b4b862974dd46b71c9e",
-                "reference": "13edfd8706462032c2f52b4b862974dd46b71c9e",
+                "url": "https://api.github.com/repos/sebastianbergmann/diff/zipball/7f066a26a962dbe58ddea9f72a4e82874a3975a4",
+                "reference": "7f066a26a962dbe58ddea9f72a4e82874a3975a4",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.3"
+                "php": "^5.3.3 || ^7.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "~4.8"
+                "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.0"
             },
             "type": "library",
             "extra": {
@@ -1091,7 +1138,7 @@
             "keywords": [
                 "diff"
             ],
-            "time": "2015-12-08T07:14:41+00:00"
+            "time": "2017-05-22T07:24:03+00:00"
         },
         {
             "name": "sebastian/environment",
@@ -1351,16 +1398,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v3.2.6",
+            "version": "v3.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "093e416ad096355149e265ea2e4cc1f9ee40ab1a"
+                "reference": "9752a30000a8ca9f4b34b5227d15d0101b96b063"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/093e416ad096355149e265ea2e4cc1f9ee40ab1a",
-                "reference": "093e416ad096355149e265ea2e4cc1f9ee40ab1a",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/9752a30000a8ca9f4b34b5227d15d0101b96b063",
+                "reference": "9752a30000a8ca9f4b34b5227d15d0101b96b063",
                 "shasum": ""
             },
             "require": {
@@ -1375,7 +1422,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.2-dev"
+                    "dev-master": "3.3-dev"
                 }
             },
             "autoload": {
@@ -1402,7 +1449,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2017-03-07T16:47:02+00:00"
+            "time": "2017-06-02T22:05:06+00:00"
         },
         {
             "name": "webmozart/assert",

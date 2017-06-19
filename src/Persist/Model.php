@@ -10,6 +10,8 @@ use PhpPlatform\Persist\Exception\InvalidForeignClassException;
 use PhpPlatform\Persist\Exception\InvalidInputException;
 use PhpPlatform\Persist\Exception\TriggerException;
 use PhpPlatform\Persist\Connection\Connection;
+use PhpPlatform\Annotations\Annotation;
+use PhpPlatform\Session\Factory;
 
 abstract class Model implements Constants{
 
@@ -85,14 +87,13 @@ abstract class Model implements Constants{
     }
     
     /**
-     * 
-     * @param Model|string $object
-     * @param string $accessType
-     * @param string $errorMessage
+     * checks the access for this operation based on the annotations defined for this operation
+     * @param string|Model $object on which access needs to be validated
+     * @param string $errorMessage error message to be set as exception message if access is denied
      * @throws NoAccessException
-     * @return string|boolean
+     * @return boolean|string True or Valid where expression for Read access on Success otherwise false
      */
-    final protected static function checkAccess($object,$accessType,$errorMessage){
+    private static function checkAccess($object,$errorMessage){
     	
     	if(is_string($object)){
     		$className = $object;
@@ -101,23 +102,123 @@ abstract class Model implements Constants{
     		$className = get_class($object);
     	}
     	
-    	if(!TransactionManager::isSuperUser()){
-    		while($className != false){
-    			try{
-    				$result = Reflection::invokeArgs($className, $accessType, $object);
-    				if($result === false){
-    					throw new NoAccessException($errorMessage);
-    				}
-    				return $result;
-    			}catch (\ReflectionException $re){
-    				// do nothing
+    	if(TransactionManager::isSuperUser()){
+    		return true;
+    	}
+    	
+    	$hasAccess = false;
+    	$hasAccessChecks = false;
+    	try{
+    		TransactionManager::startTransaction(null,true);
+    		
+    		$debugBacktraces = debug_backtrace(false);
+    		$args = null;
+    		$function = null;
+    		foreach($debugBacktraces as $debugBacktrace){
+    			if($debugBacktrace["class"] == $className){
+    				$args = $debugBacktrace["args"];
+    				$function = $debugBacktrace["function"];
+    				break;
     			}
-    			$className = get_parent_class($className);
     		}
+    		
+    		$accessAnnotations = self::getAccessAnnotation($className, $function);
+    		
+    		if(is_array($accessAnnotations) && count($accessAnnotations) > 0){
+    			$hasAccessChecks = true;
+    			
+    			//
+    			// access annotations will be of the form 
+    			// array(
+    			//      "key1|value1",
+    			//      "key2|value2",
+    			//      ...
+    			//      "function|functionName"
+    			// )
+    			// 
+    			// Access is granted if session contains value for the specified key
+    			// "function" is the special reserved key for which a function mentioned as value is called instead of checking for the value in session
+    			
+    			
+    			// group access annotations by key
+    			$accessMasks = array();
+    			foreach ($accessAnnotations as $accessMask){
+    				$accessMaskArr = preg_split('/\|/', $accessMask);
+    				$accessMaskKey = $accessMaskArr[0];
+    				$accessMaskValue = $accessMaskArr[1];
+    				if(!array_key_exists($accessMaskKey, $accessMasks)){
+    					$accessMaskValues = array();
+    				}else{
+    					$accessMaskValues = $accessMasks[$accessMaskKey];
+    				}
+    				$accessMaskValues[] = $accessMaskValue;
+    				$accessMasks[$accessMaskKey] = $accessMaskValues;
+    			}
+    			
+    			$session = Factory::getSession();
+    			foreach ($accessMasks as $accessKey=>$accessValues){
+    				if($accessKey == "function"){
+    					continue;
+    				}
+    				$sessionValues = $session->get($accessKey);
+    				
+    				if(count(array_intersect($sessionValues, $accessValues)) > 0){
+    					$hasAccess = true;
+    					break;
+    				}
+    			}
+    			
+    			if(!$hasAccess && array_key_exists("function", $accessMasks)){
+    				foreach ($accessMasks["function"] as $function){
+    					$result = Reflection::invokeArgs($className, $function, $object, $args);
+    					if(is_string($result)){
+    						$hasAccess = $result;
+    						break;
+    					}
+    					if(isset($result) && $result){
+    						$hasAccess = true;
+    						break;
+    					}
+    				}
+    			}
+    		}
+    		
+    		TransactionManager::commitTransaction();
+    	}catch (\Exception $e){
+    		TransactionManager::abortTransaction();
+    		throw $e;
+    	}
+    	
+    	if($hasAccessChecks){
+    		if($hasAccess === false){
+    			throw new NoAccessException($errorMessage);
+    		}
+    		return $hasAccess;
     	}
     	return true;
     }
     
+    static private function getAccessAnnotation($class,$method){
+    	if($class === false || $method === false){
+    		return array();
+    	}
+    	$annotations = Annotation::getAnnotations($class,null,null,$method);
+    	$annotations = $annotations["methods"][$method];
+    	
+    	if(array_key_exists("access", $annotations)){
+    		$accessAnnotations = $annotations["access"];
+    	}
+    	if(is_string($accessAnnotations)){
+    		$accessAnnotations = array($accessAnnotations);
+    	}
+    	if(in_array("inherit", $accessAnnotations)){
+    		$parentClass = get_parent_class($class);
+    		$parentAccessAnnotations = self::getAccessAnnotation($parentClass, $method);
+    		unset($accessAnnotations["inherit"]);
+    		$accessAnnotations = array_merge($accessAnnotations,$parentAccessAnnotations);
+    	}
+    	return $accessAnnotations;
+    }
     
     /**
      * 
@@ -139,7 +240,7 @@ abstract class Model implements Constants{
     		$calledClass = get_called_class();
     		
     		// check for Create Access
-    		self::checkAccess($calledClass, "CreateAccess", "User don't have access to Create");
+    		self::checkAccess($calledClass, "User don't have access to Create");
     		
     		// create an instance of calledClass
     		$thisModelObject = self::__newInstanceWithoutConstructor($calledClass);
@@ -247,7 +348,7 @@ abstract class Model implements Constants{
         	TransactionManager::startTransaction();
         	$connection = TransactionManager::getConnection();
         	
-	        $readAccessWhereClause = self::checkAccess($calledClassName, "ReadAccess", "User don't have access to Read");
+	        $readAccessWhereClause = self::checkAccess($calledClassName, "User don't have access to Read");
 	        
 	        foreach ($classList as $className=>$class){
 	        	self::runTrigger($className, self::TRIGGER_EVENT_READ, self::TRIGGER_TYPE_PRE, array(array("filters"=>$filters,"sort"=>$sort,"pagination"=>$pagination, "where"=>$where)));
@@ -638,7 +739,7 @@ abstract class Model implements Constants{
             $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             // check for Delete Access
-            self::checkAccess($this, "DeleteAccess", "User don't have access to Delete");
+            self::checkAccess($this, "User don't have access to Delete");
 
             foreach($classList as $className=>$class){
                 $reflectionClass = new \ReflectionClass($className);
@@ -729,7 +830,7 @@ abstract class Model implements Constants{
             $classList = RelationalMappingUtil::getClassConfiguration(get_class($this));
 
             // check for Update Access
-            self::checkAccess($this, "UpdateAccess", "User don't have access to Update");
+            self::checkAccess($this, "User don't have access to Update");
             
             foreach($classList as $className=>$class){
                 $setClause = "";

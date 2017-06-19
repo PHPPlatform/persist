@@ -50,6 +50,20 @@ class TParent extends TSuperParent {
         }
         parent::__construct();
     }
+    
+    /**
+     * @access "person|noOne"
+     */
+    static function create($data){
+    	return parent::create($data);
+    }
+    
+    /**
+     * @access "person|noOne"
+     */
+    static function find($filters,$sort,$pagination,$where){
+    	return parent::find($filters,$sort,$pagination,$where);
+    }
 
     function delete(){
         parent::delete();
@@ -61,6 +75,9 @@ class TParent extends TSuperParent {
         return $this->setAttributes($args);
     }
 
+    /**
+     * @access "person|noOne"
+     */
     function setAttributes($args){
         return parent::setAttributes($args);
     }
@@ -74,22 +91,6 @@ class TParent extends TSuperParent {
 
     function getAttributes($args){
         return parent::getAttributes($args);
-    }
-
-    static function CreateAccess(){
-        return false;
-    }
-
-    static function ReadAccess(){
-        return false;
-    }
-
-    function UpdateAccess(){
-        return false;
-    }
-
-    function DeleteAccess(){
-        return false;
     }
 
 }

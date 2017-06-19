@@ -77,10 +77,6 @@ class TNormal1 extends Model {
     function getAttributes($args){
         return parent::getAttributes($args);
     }
-    
-    static function ReadAccess(){
-    	return '{'.get_class().'.fVarchar}'." != 'a junk value'";
-    }
 
 }
 ?>

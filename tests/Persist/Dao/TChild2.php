@@ -83,21 +83,5 @@ class TChild2 extends TParent {
         return parent::getAttributes($args);
     }
 
-    static function CreateAccess(){
-        return true;
-    }
-
-    static function ReadAccess(){
-        return true;
-    }
-
-    function UpdateAccess(){
-        return true;
-    }
-
-    function DeleteAccess(){
-        return true;
-    }
-
 }
 ?>
