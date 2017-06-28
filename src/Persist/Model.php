@@ -789,7 +789,7 @@ abstract class Model implements Constants{
                 $result = $conection->query($query);
 
                 if($result === FALSE){
-                    $errorMessage = "Error in deleting ".get_class($this).":$className ";
+                    $errorMessage = "Error in deleting ".get_class($this).":$className \"".$conection->lastError()."\"";
                     throw new BadQueryException($errorMessage);
                 }
                 self::runTrigger($className, self::TRIGGER_EVENT_DELETE, self::TRIGGER_TYPE_POST, array($this));
@@ -953,7 +953,7 @@ abstract class Model implements Constants{
                 $result = $connection->query($query);
 
                 if($result === FALSE){
-                    $errorMessage = "Error in updating ".get_class($this).":$className ";
+                    $errorMessage = "Error in updating ".get_class($this).":$className \"".$connection->lastError()."\"";
                     throw new BadQueryException($errorMessage);
                 }
                 self::runTrigger($className, self::TRIGGER_EVENT_UPDATE, self::TRIGGER_TYPE_POST, array($this,$modifiedFields));
