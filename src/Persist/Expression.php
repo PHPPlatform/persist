@@ -162,7 +162,7 @@ class Expression {
 		}
 	}
 	
-	private function expectedOperandsLength($operands,$length,$minimum){
+	private function expectedOperandsLength($operands,$length,$minimum = false){
 		if(isset($minimum)){
 			if(count($operands) < $length){
 				throw new InvalidInputException('Invalid number of Operands');
