@@ -36,7 +36,6 @@ class Expression {
 		);
 		/**
 		 * @todo to support Aggregator functions like , SUM , MAX, MIN ... 
-		 * @todo extend support for IS NULL and IS NOT NULL
 		 */
 		
 		if(!in_array($operator, $allowedOperators)){
@@ -67,23 +66,23 @@ class Expression {
 				break;
 			case Model::OPERATOR_LT:
 				$this->expectedOperandsLength($operands, 2);
-				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM);
-				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM);
+				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
+				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
 				break;
 			case Model::OPERATOR_GT:
 				$this->expectedOperandsLength($operands, 2);
-				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM);
-				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM);
+				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
+				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
 				break;
 			case Model::OPERATOR_LTE:
 				$this->expectedOperandsLength($operands, 2);
-				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM);
-				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM);
+				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
+				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
 				break;
 			case Model::OPERATOR_GTE:
 				$this->expectedOperandsLength($operands, 2);
-				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM);
-				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM);
+				$this->isValidOpearand($operands[0], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
+				$this->isValidOpearand($operands[1], self::$IS_FIELD|self::$IS_NUM|self::$IS_STRING);
 				break;
 			case Model::OPERATOR_BETWEEN:
 				$this->expectedOperandsLength($operands, 3);
@@ -190,8 +189,10 @@ class Expression {
 					$operand = "%$operand%";
 				}
 				$operand = "'$operand'";
-			}elseif(is_numeric($operand) || is_bool($operand)){
+			}elseif(is_numeric($operand)){
 				$operand = $operand;
+			}elseif(is_bool($operand)){
+				$operand = $operand?'TRUE':'FALSE';
 			}elseif(is_array($operand)){
 				if(count($operand) == 0){
 					throw new InvalidInputException('the operand for IN operator can not be empty array');
