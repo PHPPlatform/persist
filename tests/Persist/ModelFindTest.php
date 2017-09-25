@@ -15,6 +15,8 @@ use PhpPlatform\Persist\TransactionManager;
 use PhpPlatform\Tests\Persist\Dao\Relations\TMany2;
 use PhpPlatform\Tests\Persist\Dao\Relations\TMany3;
 use PhpPlatform\Tests\Persist\Dao\Relations\TMany2ToMany3;
+use PhpPlatform\Persist\Expression;
+use PhpPlatform\Persist\Field;
 
 class ModelFindTest extends ModelTest{
 
@@ -125,7 +127,16 @@ class ModelFindTest extends ModelTest{
             array("fDecimal"=>array(Model::OPERATOR_BETWEEN => array(100,1900))),
             array("fTimestamp"=>Model::SORTBY_ASC),
             array("pageSize"=>5,"pageNumber"=>1),
-            '{PhpPlatform\Tests\Persist\Dao\TParent.fInt} = 6 OR {PhpPlatform\Tests\Persist\Dao\TParent.fInt} = 2');
+        	new Expression(Model::OPERATOR_OR, array(
+        			new Expression(Model::OPERATOR_EQUAL, array(
+        					new Field('PhpPlatform\Tests\Persist\Dao\TParent', 'fInt'),
+        					6)
+        			),new Expression(Model::OPERATOR_EQUAL, array(
+        					new Field('PhpPlatform\Tests\Persist\Dao\TParent', 'fInt'),
+        					2)
+        			)
+        	)));
+            //'{PhpPlatform\Tests\Persist\Dao\TParent.fInt} = 6 OR {PhpPlatform\Tests\Persist\Dao\TParent.fInt} = 2');
         $this->assertCount(4,$findResults);
         $this->assertPrimaryIds(array(5,3,4,8),$findResults,'PhpPlatform\Tests\Persist\Dao\TChild1');
         $totalRecords = TChild1::getLastTotalRecords();

@@ -171,11 +171,10 @@ abstract class Model implements Constants{
     			if(!$hasAccess && array_key_exists("function", $accessMasks)){
     				foreach ($accessMasks["function"] as $function){
     					$result = Reflection::invokeArgs($className, $function, $object, $args);
-    					if(is_string($result)){
+    					if($result instanceof Expression){
     						$hasAccess = $result;
     						break;
-    					}
-    					if(isset($result) && $result){
+    					}else if(isset($result) && $result){
     						$hasAccess = true;
     						break;
     					}
@@ -289,8 +288,8 @@ abstract class Model implements Constants{
     								throw new InvalidInputException("Expected boolean value for $fieldName");
     							}
     						}
-    		
-    						$values .= "'".addslashes($value)."'";
+    						$value = $connection->encodeForSQLInjection($value);
+    						$values .= "'$value'";
     					}
     				}
     			}
@@ -328,8 +327,7 @@ abstract class Model implements Constants{
      * @param $filters array of fields to match for
      * @param null $sort array for sorting
      * @param null $pagination array(pageNumber,pageSize)
-     * @param null $where complex SQL where expression , column names should be written in {className.fieldName} format ,
-     *             !important - contents of $where should be SQL injection free
+     * @param null $where Expression - complex SQL where expression
      * @return array
      * @throws \Exception
      * 
@@ -354,13 +352,15 @@ abstract class Model implements Constants{
 	        	self::runTrigger($className, self::TRIGGER_EVENT_READ, self::TRIGGER_TYPE_PRE, array(array("filters"=>$filters,"sort"=>$sort,"pagination"=>$pagination, "where"=>$where)));
 	        }
 	
-	        
-	        $Clauses = self::generateClauses($connection,$classList, $filters, $sort, $where, $readAccessWhereClause);
-	        
-	        if($Clauses === false){
-	        	throw new DataNotFoundException("generateClauses returned false");
+	        if($readAccessWhereClause instanceof Expression){
+	        	if($where instanceof Expression){
+	        		$where = new Expression(self::OPERATOR_AND, array($where,$readAccessWhereClause));
+	        	}else {
+	        		$where = $readAccessWhereClause;
+	        	}
 	        }
-	
+	        $Clauses = self::generateClauses($connection,$classList, $filters, $sort, $where);
+	        
 	        $selectClause  = $Clauses["selectClause"];
 	        $fromClause    = $Clauses["fromClause"];
 	        $whereClause   = $Clauses["whereClause"];
@@ -383,27 +383,9 @@ abstract class Model implements Constants{
 	            $i++;
 	        }
 
-        
-
-            if(isset($where) && $where != ""){
-                if($whereClause != ""){
-                    $whereClause .= " AND ";
-                }
-                $whereClause .= "($where)";
-            }
-
-            if(isset($readAccessWhereClause) && $readAccessWhereClause != ""){
-                if($whereClause != ""){
-                    $whereClause .= " AND ";
-                }
-                $whereClause .= "($readAccessWhereClause)";
-            }
-
             if($whereClause != ""){
                 $whereClause = "WHERE ".$whereClause;
             }
-
-            
 
             $limit = "";
             if(is_array($pagination)){
@@ -510,7 +492,7 @@ abstract class Model implements Constants{
      * @throws InvalidInputException
      * @return string[][]
      */
-    private static function generateClauses($connection, &$classList,$filters,$sort,&$where,&$readAccessWhereClause){
+    private static function generateClauses($connection, &$classList,$filters,$sort,$where){
     	$fromClause = "";
     	$whereClause = "";
     	$selectClause = "";
@@ -519,16 +501,8 @@ abstract class Model implements Constants{
     	
     	$_processedSortArray = array();
     	
-    	$allowedOperators = array( self::OPERATOR_LIKE,
-    			self::OPERATOR_EQUAL,
-    			self::OPERATOR_NOT_EQUAL,
-    			self::OPERATOR_BETWEEN,
-    			self::OPERATOR_GT,
-    			self::OPERATOR_GTE,
-    			self::OPERATOR_LT,
-    			self::OPERATOR_LTE,
-    			self::OPERATOR_IN
-    	);
+    	$fieldToColumnNameMapping = array();
+    	$filterWhereExpressions = array();
     	
     	foreach($classList as $className=>&$class){
     		$prefix = $class['prefix'];
@@ -607,67 +581,42 @@ abstract class Model implements Constants{
     				}
     	
     				// $filters[$fieldName] = array(Model::Operator => VALUE)
-    				if(count($filters[$fieldName]) > 1){
-    					throw new InvalidInputException("Invalid find argument for $fieldName");
-    				}
-    	
-    				$argumentArrayKeys = array_keys($filters[$fieldName]);
-    				$operator = $argumentArrayKeys[0];
-    				if(!in_array($operator,$allowedOperators)){
-    					throw new InvalidInputException("Invalid find argument for $fieldName");
-    				}
-    	
-    				$value    = $filters[$fieldName][$operator];
-    	
-    				$fieldWhereClause = null;
-    				if($operator == self::OPERATOR_LIKE){
-    					$value = $connection->encodeForSQLInjection($value);
-    					$fieldWhereClause = "$_prefix.$_columnName $operator '%$value%'";
-    				}else if($operator == self::OPERATOR_BETWEEN){
-    					if(!is_array($value) || count($value) != 2){
-    						throw new InvalidInputException("Invalid find argument for $fieldName");
+    				foreach ($filters[$fieldName] as $operator=>$value){
+    					$fieldObj = new Field($className, $fieldName);
+    					switch ($operator){
+    						case self::OPERATOR_EQUAL:
+    							if($value === null){
+    								$expression = new Expression(self::OPERATOR_IS_NULL, array($fieldObj));
+    							}else{
+    								$expression = new Expression($operator, array($fieldObj,$value));
+    							}
+    						    break;
+    						case self::OPERATOR_NOT_EQUAL:
+	    						if($value === null){
+	    							$expression = new Expression(self::OPERATOR_IS_NOT_NULL, array($fieldObj));
+	    						}else{
+	    							$expression = new Expression($operator, array($fieldObj,$value));
+	    						}
+    						    break;
+    						case self::OPERATOR_IN:
+    							if(count($value) == 0){
+    								throw new DataNotFoundException('No data for the filter array(IN=>array())');
+    							}else{
+    								$expression = new Expression($operator, array($fieldObj,$value));
+    							}
+   							    break;
+    						case self::OPERATOR_BETWEEN:
+    							$expression = new Expression($operator, array_merge(array($fieldObj),$value));
+      						    break;
+    						default:
+    							$expression = new Expression($operator, array($fieldObj,$value));
     					}
-    					$minValue = $connection->encodeForSQLInjection($value[0]);
-    					$maxValue = $connection->encodeForSQLInjection($value[1]);
-    	
-    					$fieldWhereClause = "$_prefix.$_columnName $operator '$minValue' AND '$maxValue'";
-    				}else if($operator == self::OPERATOR_IN){
-    					if(!is_array($value)){
-    						throw new InvalidInputException("Invalid find argument for $fieldName");
-    					}
-    					
-    					if(count($value) == 0){
-    						return false;
-    					}
-    	
-    					$value = array_map(function($valueItem) use ($connection){
-    						return $connection->encodeForSQLInjection($valueItem);
-    					}, $value);
-    	
-    					$valueStr = implode("','",$value);
-    					$valueStr = "('".$valueStr."')";
-    					$fieldWhereClause = "$_prefix.$_columnName $operator $valueStr";
-    				}else {
-    					if($value === null){
-    						$operator = "is";
-    						$value = "null";
-    					}else{
-    						$value = $connection->encodeForSQLInjection($value);
-    						$value = "'$value'";
-    					}
-    					$fieldWhereClause = "$_prefix.$_columnName $operator $value";
+    					$filterWhereExpressions[] = $expression;
     				}
-    				if($whereClause != ""){
-    					$whereClause .= " AND ";
-    				}
-    				$whereClause .= "(".$fieldWhereClause.")";
     				unset($filters[$fieldName]);
     			}
     	
-    			if(isset($where)){
-    				$where = str_replace("{"."$className.$fieldName"."}",$_prefix.".".$_columnName,$where);
-    			}
-    			$readAccessWhereClause = str_replace("{"."$className.$fieldName"."}",$_prefix.".".$_columnName,$readAccessWhereClause);
+    			$fieldToColumnNameMapping[$className.'::'.$fieldName] = $_prefix.".".$_columnName;
     	
     			if(isset($field['groupBy']) && (strtoupper($field['groupBy']) == "TRUE" || $field['groupBy'] === true )){
     				$groupByClause = "GROUP BY $_prefix.$_columnName";
@@ -681,6 +630,21 @@ abstract class Model implements Constants{
     						$_processedSortArray[] = $fieldName;
     			}
     		}
+    	}
+    	
+    	if(!isset($where)){
+    		// Dont do anything
+    	}elseif($where instanceof Expression){
+    		$filterWhereExpressions[] = $where;
+    	}else{
+    		throw new InvalidInputException('parameter "where" should be an instance of Expression');
+    	}
+    	
+    	if(count($filterWhereExpressions) == 1){
+    		$whereClause = $filterWhereExpressions[0]->asString($fieldToColumnNameMapping);
+    	}elseif(count($filterWhereExpressions) > 1){
+    		$whereExpression = new Expression(self::OPERATOR_AND, $filterWhereExpressions);
+    		$whereClause = $whereExpression->asString($fieldToColumnNameMapping);
     	}
     	
     	if(is_array($sort) && count($sort) > 0 && count($sort) == count($_processedSortArray)){
@@ -697,8 +661,6 @@ abstract class Model implements Constants{
     	return $Clauses;
     	
     }
-    
-    
 
     public static function getLastTotalRecords($pageSize = null){
         try{
@@ -742,48 +704,10 @@ abstract class Model implements Constants{
             self::checkAccess($this, "User don't have access to Delete");
 
             foreach($classList as $className=>$class){
-                $reflectionClass = new \ReflectionClass($className);
-                $fields = $class['fields'];
-                foreach($fields as $fieldName=>$field){
-                    if(isset($field['primary']) && (strtoupper($field['primary']) == "TRUE" || $field['primary'] === true) ){
-                        $class['primayFieldName'] = $fieldName;
-                        break;
-                    }
-                }
-
-                $whereClause = "";
-                if(isset($class['primayFieldName'])){
-                    $reflectionProperty = $reflectionClass->getProperty($class['primayFieldName']);
-                    $reflectionProperty->setAccessible(true);
-
-                    $primaryField = $class['fields'][$class['primayFieldName']]['columnName'];
-                    $primaryValue = $reflectionProperty->getValue($this);
-
-                    $whereClause = "$primaryField = '$primaryValue'";
-
-                }else{
-                    foreach($fields as $fieldName=>$field){
-                        if(isset($field['columnName']) && !isset($field['foreignField'])){
-                            $reflectionProperty = $reflectionClass->getProperty($fieldName);
-                            $reflectionProperty->setAccessible(true);
-                            $fieldValue = $reflectionProperty->getValue($this);
-                            if($fieldValue == null){
-                            	$fieldValue = 'IS NULL';
-                            }else{
-                            	$fieldValue = " = '$fieldValue'";
-                            }
-
-                            if($whereClause != ""){
-                                $whereClause .= " AND ";
-                            }
-                            $whereClause .= ($field['columnName']." $fieldValue");
-                        }
-                    }
-                }
-
-
+                
+                $recordIdentifier = $this->recordIdentifier($className, $class);
                 $tableName = RelationalMappingUtil::getTableName($class, $this);
-                $query = "DELETE FROM $tableName WHERE ".$whereClause;
+                $query = "DELETE FROM $tableName WHERE ".$recordIdentifier;
 
                 self::runTrigger($className, self::TRIGGER_EVENT_DELETE, self::TRIGGER_TYPE_PRE, array($this));
                 $result = $conection->query($query);
@@ -838,9 +762,6 @@ abstract class Model implements Constants{
                 $reflectionClass = new \ReflectionClass($className);
                 $fields = $class['fields'];
                 foreach($fields as $fieldName=>$field){
-                    if(isset($field['primary']) && (strtoupper($field['primary']) == "TRUE" || $field['primary'] === true) ){
-                        $class['primayFieldName'] = $fieldName;
-                    }
                     if(isset($field['set']) && (strtoupper($field['set']) == "TRUE" || $field['set'] === true )){
                         if(isset($args[$fieldName])){
 
@@ -879,7 +800,7 @@ abstract class Model implements Constants{
                                 }
                                 
                                 $foreignClassTableName = RelationalMappingUtil::getTableName($foreignClassConf, $foreignClassName);
-
+                                $value = $connection->encodeForSQLInjection($value);
                                 $result = $connection->query("SELECT ".$foreignPrimaryField['columnName']." FROM ".$foreignClassTableName." WHERE ".$foreignClassConf['fields'][$foreignFieldName]['columnName']." = '".$value."'");
 
                                 if($result === FALSE){
@@ -906,7 +827,8 @@ abstract class Model implements Constants{
                                 }else if($value === false ){
                                     $setClause .= $field['columnName']." = false";
                                 }else{
-                                    $setClause .= $field['columnName']." = '".addslashes($value)."'";
+                                	$value = $connection->encodeForSQLInjection($value);
+                                    $setClause .= $field['columnName']." = '$value'";
                                 }
 
                                 $modifiedFields[$fieldName] = $originalVal;
@@ -920,32 +842,12 @@ abstract class Model implements Constants{
                     $modifiedClasses[$className] = $modifiedFields;
                 }
 
-                $reflectionClass = new \ReflectionClass($className);
-                $recordIdentifier = "";
-                if(isset($class['primayFieldName']) && $class['primayFieldName'] != ""){
-                    $reflectionProperty = $reflectionClass->getProperty($class['primayFieldName']);
-                    $reflectionProperty->setAccessible(true);
-                    $keyValue = $reflectionProperty->getValue($this);
-                    $recordIdentifier = $fields[$class['primayFieldName']]['columnName']." = '$keyValue'";
-                }else{
-                    foreach($fields as $fieldName=>$field){
-                        if(isset($field['columnName']) && !isset($field['foreignField'])){
-                            $reflectionProperty = $reflectionClass->getProperty($fieldName);
-                            $reflectionProperty->setAccessible(true);
-                            $fieldValue = $reflectionProperty->getValue($this);
-
-                            if($recordIdentifier != ""){
-                                $recordIdentifier .= " AND ";
-                            }
-                            $recordIdentifier .= ($field['columnName']." = '$fieldValue'");
-                        }
-                    }
-                }
 
                 if(trim($setClause) == ""){
                     continue;
                 }
-
+                
+                $recordIdentifier = $this->recordIdentifier($className, $class);
                 $tableName = RelationalMappingUtil::getTableName($class, $this);
                 $query = "UPDATE $tableName SET $setClause WHERE $recordIdentifier";
 
@@ -1033,46 +935,39 @@ abstract class Model implements Constants{
             throw $exp;
         }
     }
-
-    /**
-     * Method to check for Create Access
-     * This method needs to be overridden by implementing Models
-     *
-     * @return boolean - True to allow creation , otherwise False
-     */
-    protected static function CreateAccess(){
-        return true;
-    }
-
-    /**
-     * Method to check for Read Access
-     * This method needs to be overridden by implementing Models
-     *
-     * @return string - Where expression to use to find objects with read access,
-     *         boolean - False if no Read allowed for the particular model
-     */
-    protected static function ReadAccess(){
-        return true;
-    }
-
-    /**
-     * Method to check for Update Access
-     * This method needs to be overridden by implementing Models
-     *
-     * @return boolean - True to allow Update , otherwise False
-     */
-    protected function UpdateAccess(){
-        return true;
-    }
-
-    /**
-     * Method to check for Delete Access
-     * This method needs to be overridden by implementing Models
-     *
-     * @return boolean - True to allow deletion , otherwise False
-     */
-    protected function DeleteAccess(){
-        return true;
+    
+    private function recordIdentifier($className,$class){
+    	$connection = TransactionManager::getConnection();
+    	$fields = $class['fields'];
+    	$reflectionClass = new \ReflectionClass($className);
+    	$recordIdentifier = "";
+    	$primaryKey = RelationalMappingUtil::getPrimaryKey($class);
+    	if(isset($primaryKey)){
+    		$reflectionProperty = $reflectionClass->getProperty($primaryKey);
+    		$reflectionProperty->setAccessible(true);
+    		$keyValue = $reflectionProperty->getValue($this);
+    		$keyValue = $connection->encodeForSQLInjection($keyValue);
+    		$recordIdentifier = $fields[$primaryKey]['columnName']." = '$keyValue'";
+    	}else{
+    		foreach($fields as $fieldName=>$field){
+    			if(isset($field['columnName']) && !isset($field['foreignField'])){
+    				$reflectionProperty = $reflectionClass->getProperty($fieldName);
+    				$reflectionProperty->setAccessible(true);
+    				$fieldValue = $reflectionProperty->getValue($this);
+    				if($fieldValue == null){
+    					$fieldValue = 'IS NULL';
+    				}else{
+    					$fieldValue = $connection->encodeForSQLInjection($fieldValue);
+    				}
+    				
+    				if($recordIdentifier != ""){
+    					$recordIdentifier .= " AND ";
+    				}
+    				$recordIdentifier .= ($field['columnName']." = '$fieldValue'");
+    			}
+    		}
+    	}
+    	return $recordIdentifier;
     }
     
     private static function runTrigger($className,$triggerEvent,$triggerType,$parameters){
