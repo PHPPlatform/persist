@@ -523,7 +523,7 @@ abstract class Model implements Constants{
     			$_prefix = $prefix;
     			$_columnName = $field['columnName'];
     	
-    			if(isset($field['foreignField'])){
+    			if(RelationalMappingUtil::_isForeignField($field)){
     	
     				$foreignClassAndField = preg_split("/\-\>/",$field['foreignField']);
     				$foreignClassName = $foreignClassAndField[0];
@@ -762,7 +762,7 @@ abstract class Model implements Constants{
                 $reflectionClass = new \ReflectionClass($className);
                 $fields = $class['fields'];
                 foreach($fields as $fieldName=>$field){
-                    if(isset($field['set']) && (strtoupper($field['set']) == "TRUE" || $field['set'] === true )){
+                    if(RelationalMappingUtil::_isSet($field)){
                         if(isset($args[$fieldName])){
 
                             $value = $args[$fieldName];
@@ -784,7 +784,7 @@ abstract class Model implements Constants{
                                 }
                             }
 
-                            if($field['foreignField']){
+                            if(RelationalMappingUtil::_isForeignField($field)){
                                 $foreignClassAndField = preg_split("/\-\>/",$field['foreignField']);
                                 $foreignClassName = $foreignClassAndField[0];
                                 $foreignFieldName = $foreignClassAndField[1];
@@ -793,7 +793,7 @@ abstract class Model implements Constants{
 
                                 $foreignPrimaryField = (object)array();
                                 foreach($foreignClassConf['fields'] as $foreignField){
-                                    if(isset($foreignField['primary']) && (strtoupper($foreignField['primary']) == "TRUE" || $foreignField['primary'] === true) ){
+                                    if(RelationalMappingUtil::_isPrimary($foreignField)){
                                         $foreignPrimaryField = $foreignField;
                                         break;
                                     }
@@ -917,7 +917,7 @@ abstract class Model implements Constants{
                 $fields = $class['fields'];
                 foreach($fields as $fieldName=>$field){
 
-                    if(isset($field['get']) && (strtoupper($field['get']) == "TRUE" || $field['get'] === true )){
+                    if(RelationalMappingUtil::_isGet($field)){
                         if(in_array($fieldName,$args)){
                             $reflectionProperty = $reflectionClass->getProperty($fieldName);
                             $reflectionProperty->setAccessible(true);
@@ -950,7 +950,7 @@ abstract class Model implements Constants{
     		$recordIdentifier = $fields[$primaryKey]['columnName']." = '$keyValue'";
     	}else{
     		foreach($fields as $fieldName=>$field){
-    			if(isset($field['columnName']) && !isset($field['foreignField'])){
+    			if(isset($field['columnName']) && !RelationalMappingUtil::_isForeignField($field)){
     				$reflectionProperty = $reflectionClass->getProperty($fieldName);
     				$reflectionProperty->setAccessible(true);
     				$fieldValue = $reflectionProperty->getValue($this);

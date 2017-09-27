@@ -49,27 +49,27 @@ class RelationalMappingUtil {
 		return null;
 	}
 	
-	public static function _isSet(&$field){
+	public static function _isSet($field){
 		return isset($field['set']) && (strtoupper($field['set']) == "TRUE" || $field['set'] === true);
 	}
 	
-	public static function _isGet(&$field){
+	public static function _isGet($field){
 		return isset($field['get']) && (strtoupper($field['get']) == "TRUE" || $field['get'] === true);
 	}
 	
-	public static function _isPrimary(&$field){
+	public static function _isPrimary($field){
 		return isset($field['primary']) && (strtoupper($field['primary']) == "TRUE" || $field['primary'] === true);
 	}
 	
-	public static function _isReference(&$field){
+	public static function _isReference($field){
 		return isset($field['reference']) && (strtoupper($field['reference']) == "TRUE" || $field['reference'] === true);
 	}
 	
-	public static function _isAutoIncrement(&$field){
+	public static function _isAutoIncrement($field){
 		return isset($field['autoIncrement']) && (strtoupper($field['autoIncrement']) == "TRUE" || $field['autoIncrement'] === true);
 	}
 	
-	public static function _isForeignField(&$field){
+	public static function _isForeignField($field){
 		return isset($field['foreignField']);
 	}
 	
