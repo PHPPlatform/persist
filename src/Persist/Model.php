@@ -954,10 +954,10 @@ abstract class Model implements Constants{
     				$reflectionProperty = $reflectionClass->getProperty($fieldName);
     				$reflectionProperty->setAccessible(true);
     				$fieldValue = $reflectionProperty->getValue($this);
-    				if($fieldValue == null){
-    					$fieldValue = 'IS NULL';
+    				if($fieldValue === null){
+    					$fieldValue = ' IS NULL';
     				}else{
-    					$fieldValue = $connection->encodeForSQLInjection($fieldValue);
+    					$fieldValue = " = '".$connection->encodeForSQLInjection($fieldValue)."'";
     				}
     				
     				if($recordIdentifier != ""){
