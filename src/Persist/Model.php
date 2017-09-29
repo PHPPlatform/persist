@@ -963,7 +963,7 @@ abstract class Model implements Constants{
     				if($recordIdentifier != ""){
     					$recordIdentifier .= " AND ";
     				}
-    				$recordIdentifier .= ($field['columnName']." = '$fieldValue'");
+    				$recordIdentifier .= ($field['columnName']." $fieldValue");
     			}
     		}
     	}
