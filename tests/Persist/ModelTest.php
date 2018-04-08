@@ -10,7 +10,6 @@ namespace PhpPlatform\Tests\Persist;
 
 use PhpPlatform\Tests\PersistUnit\ModelTest as PersistUnitTest;
 use PhpPlatform\Persist\RelationalMappingCache;
-use PhpPlatform\Errors\ErrorHandler;
 
 abstract class ModelTest extends PersistUnitTest{
     
