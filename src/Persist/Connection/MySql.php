@@ -18,19 +18,19 @@ class MySql extends \mysqli implements Connection{
 	
 	private $currentTimeZone = null;
 	
-	function __construct(){
+	function __construct($params){
 		if (extension_loaded('mysqli')) {
 			
-			$host       = Settings::getSettings('php-platform/persist','mysql.host');
-			$username   = Settings::getSettings('php-platform/persist','mysql.username');
-			$password   = Settings::getSettings('php-platform/persist','mysql.password');
-			$dbname     = Settings::getSettings('php-platform/persist','mysql.dbname');
-			$port       = Settings::getSettings('php-platform/persist','mysql.port');
-			$socket     = Settings::getSettings('php-platform/persist','mysql.socket');
+			$host       = $params['host'];
+			$username   = $params['username'];
+			$password   = $params['password'];
+			$dbname     = $params['dbname'];
+			$port       = $params['port'];
+			$socket     = $params['socket'];
 			
-			$this->outputDateFormat     = Settings::getSettings('php-platform/persist','mysql.outputDateFormat');
-			$this->outputTimeFormat     = Settings::getSettings('php-platform/persist','mysql.outputTimeFormat');
-			$this->outputDateTimeFormat = Settings::getSettings('php-platform/persist','mysql.outputDateTimeFormat');
+			$this->outputDateFormat     = $params['outputDateFormat'];
+			$this->outputTimeFormat     = $params['outputTimeFormat'];
+			$this->outputDateTimeFormat = $params['outputDateTimeFormat'];
 			
 			$this->sqlLogFile = Settings::getSettings('php-platform/persist','sqlLogFile');
 				
@@ -141,6 +141,46 @@ class MySql extends \mysqli implements Connection{
 	}
 	
 	// data type format methods
+	
+	/**
+	 * this method sets the timezone for this connection
+	 * @param string $timeZone , time zone in php
+	 */
+	function setTimeZone($timeZone = null){
+	    
+	    if($timeZone == null){
+	        $timeZone = date_default_timezone_get();
+	    }
+		
+		//convert php timezone into mysql timezone format
+    	$dtz = new \DateTimeZone($timeZone);
+    	$timeInTimeZone = new \DateTime('now', $dtz);
+    	
+    	$sign = "+";
+    	$offset = $dtz->getOffset( $timeInTimeZone ) / 3600;
+    	if($offset < 0){
+    		$sign = "-";
+    		$offset = -1 * $offset;
+    	}
+    	$hourPart = intval($offset);
+    	$minutePart = $offset-$hourPart;
+    	$minutePart = $minutePart * 60;
+    	
+    	$timeZoneForMySql = $sign.$hourPart.":".$minutePart;
+    	
+    	// set the timezone in mysql
+    	$this->query("SET time_zone='$timeZoneForMySql'");
+    	
+    	$this->currentTimeZone = $timeZone;
+    }
+    
+    /**
+     * {@inheritDoc}
+     * @see \PhpPlatform\Persist\Connection\Connection::getTimeZone()
+     */ 
+    public function getTimeZone() {
+        return $this->currentTimeZone;
+    }
 	
 	/**
 	 * this method formats date for this connection
@@ -267,37 +307,6 @@ class MySql extends \mysqli implements Connection{
 		return $this->outputDateTimeFormat;
 	}
 	
-	/**
-	 * this method sets the timezone for this connection
-	 * @param string $timeZone , time zone in php
-	 */
-	function setTimeZone($timeZone){
-		if($this->currentTimeZone == $timeZone){
-			// $timeZone is set already 
-			return;
-		}
-		$this->currentTimeZone = $timeZone;
-		
-		//convert php timezone into mysql timezone format
-    	$dtz = new \DateTimeZone($timeZone);
-    	$timeInTimeZone = new \DateTime('now', $dtz);
-    	
-    	$sign = "+";
-    	$offset = $dtz->getOffset( $timeInTimeZone ) / 3600;
-    	if($offset < 0){
-    		$sign = "-";
-    		$offset = -1 * $offset;
-    	}
-    	$hourPart = intval($offset);
-    	$minutePart = $offset-$hourPart;
-    	$minutePart = $minutePart * 60;
-    	
-    	$timeZoneForMySql = $sign.$hourPart.":".$minutePart;
-    	
-    	// set the timezone in mysql
-    	$this->query("SET time_zone='$timeZoneForMySql'");
-    }
-    
     private function log($message){
     	if(isset($this->sqlLogFile)){
     		if(!file_exists(dirname($this->sqlLogFile))){

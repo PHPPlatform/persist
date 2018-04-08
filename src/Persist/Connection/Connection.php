@@ -73,6 +73,18 @@ interface Connection {
 	// data type format methods
 	
 	/**
+	 * this method sets the timezone for this connection
+	 * @param string $timeZone , time zone in php, if null then return value from php's date_default_timezone_get() method is considered
+	 */
+	function setTimeZone($timeZone = null);
+	
+	/**
+	 * this method gets the timezone from this connection
+	 * @return string $timeZone , time zone in php
+	 */
+	function getTimeZone();
+	
+	/**
 	 * this method formats date for this connection
 	 * 
 	 * @param string|integer $dateStr time in string or timestamp in integer
@@ -116,11 +128,5 @@ interface Connection {
 	 * this method returns output datetime format for this connection
 	 */
 	function outputDateTimeFormat();
-	
-	/**
-	 * this method sets the timezone for this connection
-	 * @param string $timeZone , time zone in php
-	 */
-	function setTimeZone($timeZone);
 	
 }

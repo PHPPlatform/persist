@@ -1,17 +1,21 @@
 {
 
-  "connection-class":"PhpPlatform\\Persist\\Connection\\MySql",
-  "mysql" : {
-    "host" : "localhost",
-    "username" : "root",
-    "password" : "",
-    "dbname" : "persisttest",
-    "port" : "3306",
-    "socket" : null,
-    
-    "outputDateFormat" : "%d-%b-%Y",
-    "outputTimeFormat" : "%H:%i:%S",
-    "outputDateTimeFormat" : "%d-%b-%Y %H:%i:%S"
+  "dbConnections":{
+    "default":{
+      "providerClass":"PhpPlatform\\Persist\\Connection\\MySql",
+      "params":{
+	    "host" : "localhost",
+	    "username" : "root",
+	    "password" : "",
+	    "dbname" : "persisttest",
+	    "port" : "3306",
+	    "socket" : null,
+	    
+	    "outputDateFormat" : "%d-%b-%Y",
+	    "outputTimeFormat" : "%H:%i:%S",
+	    "outputDateTimeFormat" : "%d-%b-%Y %H:%i:%S"
+	  }
+    }
   },
   
   "sqlLogFile":null,
