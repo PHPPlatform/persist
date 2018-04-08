@@ -332,22 +332,23 @@
         },
         {
             "name": "php-platform/persist-unit",
-            "version": "v0.1.5",
+            "version": "v0.1.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPPlatform/persist-unit.git",
-                "reference": "cb45a4a7cb5c4cd8f5740e61275cebf13e54ca2b"
+                "reference": "f575f5f140484cb3e459ce0393c2c01f5d9c1390"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/cb45a4a7cb5c4cd8f5740e61275cebf13e54ca2b",
-                "reference": "cb45a4a7cb5c4cd8f5740e61275cebf13e54ca2b",
+                "url": "https://api.github.com/repos/PHPPlatform/persist-unit/zipball/f575f5f140484cb3e459ce0393c2c01f5d9c1390",
+                "reference": "f575f5f140484cb3e459ce0393c2c01f5d9c1390",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3",
+                "php": ">=5.4",
                 "php-platform/errors": "~0.1",
                 "php-platform/mock-config": "~0.1",
+                "php-platform/persist": "~0.1",
                 "php-platform/session": "~0.1",
                 "phpunit/dbunit": "~1.4",
                 "phpunit/phpunit": "~4.8"
@@ -359,6 +360,9 @@
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
             "authors": [
                 {
                     "name": "Raghavendra K R",
@@ -378,7 +382,7 @@
                 "relational Schema",
                 "unit-test"
             ],
-            "time": "2017-09-29T09:19:01+00:00"
+            "time": "2018-04-06T07:14:50+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -1398,7 +1402,7 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v3.4.7",
+            "version": "v3.4.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
